@@ -128,10 +128,10 @@ USE_TZ = True
 
 STATIC_URL = os.path.join(BASE_DIR, '/static/')
 
-MEDIA_ROOT = os.path.join(BASE_DIR, '/web/uploaded/')
-
 print('Base Directory: ' + str(os.path.dirname(os.path.dirname(BASE_DIR))))
 
 CUSTOM_PACKAGE_ROOT = os.path.dirname(os.path.dirname(BASE_DIR))
 
 sys.path.append(str(CUSTOM_PACKAGE_ROOT))
+
+MEDIA_ROOT = str(os.path.join(CUSTOM_PACKAGE_ROOT, '/web/uploaded/'))

@@ -19,7 +19,7 @@ from django.conf import settings
 
 from django.http import FileResponse
 
-path = os.path.join(settings.MEDIA_ROOT, '/productphotos')
+path = str(settings.CUSTOM_PACKAGE_ROOT) + '/web/uploaded/productphotos'
 
 # Create your views here.
 class ManagerSaleBaseView(View):
@@ -233,7 +233,9 @@ class ProductImage(ManagerProductBaseView):
     def get(self, request, name):
         print('In download product image!, filename is: ' + name)
         # testing
+        print('Path is: ' + path)
         response = FileResponse(open(os.path.join(settings.BASE_DIR, path + '/' + name), 'rb'), as_attachment = True)
+        
         return response
 
 @method_decorator(csrf_exempt, name='dispatch')
