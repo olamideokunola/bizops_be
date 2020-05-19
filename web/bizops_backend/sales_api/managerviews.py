@@ -19,6 +19,8 @@ from django.conf import settings
 
 from django.http import FileResponse
 
+path = os.path.join(settings.MEDIA_ROOT, '/productphotos')
+
 # Create your views here.
 class ManagerSaleBaseView(View):
     viewModel = ManagerSaleViewModel()
@@ -176,8 +178,8 @@ class ProductImage(ManagerProductBaseView):
         # Get individual params
         self.name = params['name'] if 'name' in params.keys() else None
         self.group = params['group'] if 'group' in params.keys() else None
-        path = "/media/uploaded/productphotos"
-        path = os.path.join(settings.MEDIA_ROOT, '/productphotos')
+        # path = "/media/uploaded/productphotos"
+        # path = os.path.join(settings.MEDIA_ROOT, '/productphotos')
          # save image
         fs = FileSystemStorage(path)
         for fileid in request.FILES:
@@ -206,7 +208,7 @@ class ProductImage(ManagerProductBaseView):
         # Get individual params
         self.name = params['name'] if 'name' in params.keys() else None
         self.group = params['group'] if 'group' in params.keys() else None
-        path = "/media/uploaded/productphotos"
+        # path = "/media/uploaded/productphotos"
          # save image
         fs = FileSystemStorage(path)
         for fileid in request.FILES:
@@ -231,7 +233,7 @@ class ProductImage(ManagerProductBaseView):
     def get(self, request, name):
         print('In download product image!, filename is: ' + name)
         # testing
-        response = FileResponse(open(os.path.join(settings.BASE_DIR, '/media/uploaded/productphotos/' + name), 'rb'), as_attachment = True)
+        response = FileResponse(open(os.path.join(settings.BASE_DIR, path + '/' + name), 'rb'), as_attachment = True)
         return response
 
 @method_decorator(csrf_exempt, name='dispatch')
