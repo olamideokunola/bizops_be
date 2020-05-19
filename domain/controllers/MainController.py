@@ -1,0 +1,83 @@
+from domain.controllers.ManageSalesControllers import ManagerSaleServiceController
+from domain.controllers.AuthenticationControllers import AuthenticationController
+from domain.controllers.ManageProductsControllers import ManagerProductServiceController
+
+
+from domain.services.ManagerSalesServices import ManagerSaleInputData, ManagerManageSalesService,ManagerSaleOutputData
+from domain.services.AuthenticationServices import AuthenticationInputData, AuthenticationOutputData, AuthenticationService
+from domain.services.ManagerProductsServices import ManagerProductInputData, ManagerManageProductsService, ManagerProductOutputData
+
+from domain.dataAccess.CustomersDataAccess import CustomersDataAccessInterface, ShelveCustomersDataAccess
+from domain.dataAccess.ShelveDatabase import ShelveDataBaseManager
+from domain.dataAccess.SalesDataAccess import ShelveSalesDataAccess
+from domain.dataAccess.ProductsDataAccess import ShelveProductsDataAccess
+from domain.dataAccess.UnitsDataAccess import ShelveUnitsDataAccess
+from domain.dataAccess.UsersDataAccess import ShelveUsersDataAccess
+from domain.dataAccess.GroupsDataAccess import ShelveGroupsDataAccess
+
+class MainController:
+    # Service declaration 
+    managerManageSalesService = None
+    authenticationService = None
+
+    # Shelve Database
+    dblocation = "../../domain/dataAccess/ShelveDatabase/"
+    databaseManager = ShelveDataBaseManager(dblocation)
+
+    # data access objects
+    productsDataAccess = ShelveProductsDataAccess(databaseManager)
+    unitsDataAccess = ShelveUnitsDataAccess(databaseManager)
+    customersDataAccess = ShelveCustomersDataAccess(databaseManager)
+    salesDataAccess = ShelveSalesDataAccess(databaseManager)
+    usersDataAccess = ShelveUsersDataAccess(databaseManager)
+    groupsDataAccess = ShelveGroupsDataAccess(databaseManager)
+
+    presenter = None
+
+    def __init__(self, presenter):
+        self.presenter = presenter
+        self.setup_controllers()
+
+    def setup_controllers(self):
+        self.setup_managerManageSalesController()
+        self.setup_authenticationController()
+        self.setup_managerManageProductsController()
+
+    def setup_managerManageSalesController(self):
+
+        managerSaleInputData = ManagerSaleInputData()
+        managerSaleOutputData = ManagerSaleOutputData()
+
+        managerManageSalesService = ManagerManageSalesService(
+            self.productsDataAccess, 
+            self.customersDataAccess, 
+            self.salesDataAccess, 
+            managerSaleInputData,
+            managerSaleOutputData,
+            self.presenter
+            )
+
+        self.manageSalesServiceController = ManagerSaleServiceController(managerSaleInputData, managerManageSalesService)
+
+    def setup_authenticationController(self):
+        inputData = AuthenticationInputData()
+        outputData = AuthenticationOutputData()
+
+        authenticationService = AuthenticationService(inputData, outputData, self.usersDataAccess, self.groupsDataAccess, self.presenter)
+
+        self.authenticationController = AuthenticationController(inputData, authenticationService)
+
+    def setup_managerManageProductsController(self):
+
+        managerProductInputData = ManagerProductInputData()
+        managerProductOutputData = ManagerProductOutputData()
+
+        managerManageProductsService = ManagerManageProductsService(
+            self.productsDataAccess, 
+            self.unitsDataAccess, 
+            managerProductInputData,
+            managerProductOutputData,
+            self.presenter
+            )
+
+        self.manageProductsServiceController = ManagerProductServiceController(managerProductInputData, managerManageProductsService)
