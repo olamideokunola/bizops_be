@@ -177,6 +177,7 @@ class ProductImage(ManagerProductBaseView):
         self.name = params['name'] if 'name' in params.keys() else None
         self.group = params['group'] if 'group' in params.keys() else None
         path = "/media/uploaded/productphotos"
+        path = os.path.join(settings.MEDIA_ROOT, '/productphotos')
          # save image
         fs = FileSystemStorage(path)
         for fileid in request.FILES:
