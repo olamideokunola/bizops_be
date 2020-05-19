@@ -132,3 +132,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, '/uploaded/')
 
 print('Base Directory: ' + str(os.path.dirname(os.path.dirname(BASE_DIR))))
 
+CUSTOM_PACKAGE_ROOT = os.path.dirname(os.path.dirname(BASE_DIR))
+
+sys.path.append(str(CUSTOM_PACKAGE_ROOT))
