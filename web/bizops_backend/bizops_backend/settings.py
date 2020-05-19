@@ -24,12 +24,12 @@ SECRET_KEY = '7_xlkmcjy(rv%@s8862yrwhnn)x!4um+#&4^eb!-@2_+3$shs_'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '192.168.43.6', '192.168.43.196', '192.168.1.103', '10.191.203.152']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '192.168.43.6', '192.168.43.196', '192.168.1.103', '165.227.94.31']
 
 #  for anyone to access
 CORS_ORIGIN_ALLOW_ALL=True
 
-CSRF_TRUSTED_ORIGINS = ['localhost', '127.0.0.1', '192.168.43.6', '192.168.43.196', '192.168.1.103', '10.191.203.152']
+CSRF_TRUSTED_ORIGINS = ['localhost', '127.0.0.1', '192.168.43.6', '192.168.43.196', '192.168.1.103']
 
 # Application definition            
 
