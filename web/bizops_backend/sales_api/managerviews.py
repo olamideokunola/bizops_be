@@ -2,9 +2,9 @@ from django.shortcuts import render
 from django.views import View
 from django.http import JsonResponse, HttpResponse
 
-from bizopsbe.domain.controllers.MainController import MainController
-from bizopsbe.domain.services.ManagerSalesPresenters import ManagerSaleViewModel, ManagerSalesPresenter
-from bizopsbe.domain.services.ManagerProductsPresenters import ManagerProductViewModel, ManagerProductsPresenter
+from domain.controllers.MainController import MainController
+from domain.services.ManagerSalesPresenters import ManagerSaleViewModel, ManagerSalesPresenter
+from domain.services.ManagerProductsPresenters import ManagerProductViewModel, ManagerProductsPresenter
 
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie,csrf_exempt, csrf_protect 
