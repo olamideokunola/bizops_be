@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.views import View
 from django.http import JsonResponse, HttpResponse
 
-from .....domain.controllers.MainController import MainController
+from domain.controllers.MainController import MainController
 from domain.services.ManagerSalesPresenters import ManagerSaleViewModel, ManagerSalesPresenter
 from domain.services.ManagerProductsPresenters import ManagerProductViewModel, ManagerProductsPresenter
 
