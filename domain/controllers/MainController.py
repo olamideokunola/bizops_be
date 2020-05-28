@@ -1,11 +1,14 @@
 from domain.controllers.ManageSalesControllers import ManagerSaleServiceController
 from domain.controllers.AuthenticationControllers import AuthenticationController
 from domain.controllers.ManageProductsControllers import ManagerProductServiceController
+from domain.controllers.ManageProductionControllers import ManagerProductionBatchServiceController
 
 
 from domain.services.ManagerSalesServices import ManagerSaleInputData, ManagerManageSalesService,ManagerSaleOutputData
 from domain.services.AuthenticationServices import AuthenticationInputData, AuthenticationOutputData, AuthenticationService
 from domain.services.ManagerProductsServices import ManagerProductInputData, ManagerManageProductsService, ManagerProductOutputData
+from domain.services.ManagerProductionServices import ManagerProductionBatchInputData, ManagerManageProductionBatchService, ManagerProductionBatchOutputData
+
 
 from domain.dataAccess.CustomersDataAccess import CustomersDataAccessInterface, ShelveCustomersDataAccess
 from domain.dataAccess.ShelveDatabase import ShelveDataBaseManager
@@ -14,11 +17,13 @@ from domain.dataAccess.ProductsDataAccess import ShelveProductsDataAccess
 from domain.dataAccess.UnitsDataAccess import ShelveUnitsDataAccess
 from domain.dataAccess.UsersDataAccess import ShelveUsersDataAccess
 from domain.dataAccess.GroupsDataAccess import ShelveGroupsDataAccess
+from domain.dataAccess.ProductionBatchDataAccess import ShelveProductionBatchDataAccess
 
 class MainController:
     # Service declaration 
     managerManageSalesService = None
     authenticationService = None
+    managerManageProductionBatchService = None
 
     # Shelve Database
     dblocation = "../../domain/dataAccess/ShelveDatabase/"
@@ -31,6 +36,7 @@ class MainController:
     salesDataAccess = ShelveSalesDataAccess(databaseManager)
     usersDataAccess = ShelveUsersDataAccess(databaseManager)
     groupsDataAccess = ShelveGroupsDataAccess(databaseManager)
+    productionBatchDataAccess = ShelveProductionBatchDataAccess(databaseManager)
 
     presenter = None
 
@@ -42,6 +48,7 @@ class MainController:
         self.setup_managerManageSalesController()
         self.setup_authenticationController()
         self.setup_managerManageProductsController()
+        self.setup_managerManageProductionBatchController()
 
     def setup_managerManageSalesController(self):
 
@@ -81,3 +88,17 @@ class MainController:
             )
 
         self.manageProductsServiceController = ManagerProductServiceController(managerProductInputData, managerManageProductsService)
+
+    def setup_managerManageProductionBatchController(self):
+
+        managerProductionBatchInputData = ManagerProductionBatchInputData()
+        managerProductionBatchOutputData = ManagerProductionBatchOutputData()
+
+        managerManageProductionBatchService = ManagerManageProductionBatchService(
+            self.productionBatchDataAccess, 
+            managerProductionBatchInputData,
+            managerProductionBatchOutputData,
+            self.presenter
+            )
+
+        self.manageProductionBatchServiceController = ManagerProductionBatchServiceController(managerProductionBatchInputData, managerManageProductionBatchService)

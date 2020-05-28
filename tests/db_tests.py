@@ -22,6 +22,10 @@ from domain.products.Products import Unit
 from domain.products.UnitsDataAccessInterface import UnitsDataAccessInterface
 from domain.dataAccess.UnitsDataAccess import ShelveUnitsDataAccess
 
+from domain.production.ProductionBatch import ProductionBatch
+from domain.production.ProductionBatchDataAccessInterface import ProductionBatchDataAccessInterface
+from domain.dataAccess.ProductionBatchDataAccess import ShelveProductionBatchDataAccess
+
 dblocation = "domain/dataAccess/ShelveDatabase/"
 
 class DbSetup:
@@ -142,7 +146,7 @@ class SalesDataAccessTest(unittest.TestCase):
 
     def setup_model(self):
         self.setup_db()
-        self.dbsetup.setup_model()
+        self.dbsetup.setup_model("Sale")
 
     def setup_sales_data_access(self):
         self.shelveDatabase = ShelveDataBaseManager("domain/dataAccess/ShelveDatabase/")
@@ -248,7 +252,7 @@ class ProductsDataAccessTest(unittest.TestCase):
 
     def setup_model(self):
         self.setup_db()
-        self.dbsetup.setup_model()
+        self.dbsetup.setup_model("Product")
 
     def setup_product(self):        
         self.product1 = Product(id=1, name='Big Loaf',price='200', date=datetime.date.today())
@@ -307,7 +311,7 @@ class UnitsDataAccessTest(unittest.TestCase):
 
     def setup_model(self):
         self.setup_db()
-        self.dbsetup.setup_model()
+        self.dbsetup.setup_model("Unit")
 
     def setup_unit(self):        
         self.unit1 = Unit(id=1, shortDesc='ft', longDesc='foot', active=False)
@@ -366,7 +370,7 @@ class CustomersDataAccessTest(unittest.TestCase):
 
     def setup_model(self):
         self.setup_db()
-        self.dbsetup.setup_model()
+        self.dbsetup.setup_model("Customer")
 
     def setup_customer(self):        
         self.customer1 = Customer(id=1, name='Mallam LSDPC', date=datetime.date.today())
@@ -458,3 +462,57 @@ class GroupsDataAccessTest(unittest.TestCase):
         groups = self.groups_data_access.get_all()
 
         self.assertGreater(len(groups),0)
+
+class ProductionDataAccessTest(unittest.TestCase):
+    productiondb = None
+    dbsetup = DbSetup()
+
+    def setup_db(self):
+        self.dbsetup.setup_database()
+        self.productiondb = self.dbsetup.newdb
+
+    def setup_production_data_access(self):
+        shelveDatabase = ShelveDataBaseManager(dblocation)
+        self.production_data_access = ShelveProductionBatchDataAccess(shelveDatabase)
+
+    def setup_production_batches(self):
+        self.productionbatch1 = ProductionBatch("Bread", 3, "2020-01-01", "10:00 AM", "Ramon")
+        self.productionbatch2 = ProductionBatch("Bread", 3, "2020-01-07", "11:00 AM", "Remi")
+
+    def save_production_batches(self):
+        self.setup_db()
+        self.setup_production_batches()
+        self.setup_production_data_access()
+
+        self.savedproductionbatch1 = self.production_data_access.save(self.productionbatch1)
+        self.savedproductionbatch2 = self.production_data_access.save(self.productionbatch2)
+
+    def test_save_production_batch(self):
+        self.save_production_batches()
+        #self.assertEqual(1,self.savegroup1.id)
+        self.assertEqual("Ramon", self.productionbatch1.baker)
+        self.assertEqual("Remi", self.productionbatch2.baker)
+    
+    def test_get_production_batches(self):
+        self.setup_db()
+        self.setup_production_batches()
+        self.setup_production_data_access()
+
+        production_batches = self.production_data_access.get_all()
+
+        self.assertGreater(len(production_batches),0)
+    
+    def test_get_production_batch(self):
+        self.save_production_batches()
+
+        production_batch = self.production_data_access.get_production_batch("2020-01-01", self.savedproductionbatch1.id)
+
+        self.assertEqual("2020-01-01", production_batch.date)
+
+    def test_get_day_production_batches(self):
+        self.save_production_batches()
+
+        production_batches = self.production_data_access.get_day_production_batches("2020-01-01")
+
+        for batch in production_batches:
+            self.assertEqual("2020-01-01", batch.date)

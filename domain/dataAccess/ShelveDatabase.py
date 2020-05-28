@@ -23,7 +23,8 @@ class ShelveDataBaseManager(DatabaseManagerInterface):
                 'Group', 
                 'Authorization', 
                 'Price',
-                'Unit'
+                'Unit',
+                'ProductionBatch'
                 ]
         }
     ]

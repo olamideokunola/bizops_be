@@ -3,9 +3,12 @@ from . import managerviews
 
 from sales_api.managerviews import Products, Product, ProductPrices, ProductPrice, Customers, Sales, Sale, DaySales, MonthSales, ProductImage, Units, Unit
 from sales_api.authenticationViews import Login, Users, JwtAuthenticator, User, Groups, Models
-
+from sales_api.managerProductionViews import ProductionBatches
 
 urlpatterns = [
+    path('productionbatches/<int:id>', ProductionBatches.as_view(), name='addproductionbatch'),
+    path('productionbatches/', ProductionBatches.as_view(), name='addproductionbatch'),
+    path('<int:year>/<int:month>/<int:day>/productionbatches/', ProductionBatches.as_view(), name='productionbatches'),
     path('productimage/<str:name>', ProductImage.as_view(), name='productimage'),
     path('uploadproductimage/<int:id>', ProductImage.as_view(), name='uploadproductimage'), 
     path('groups/', Groups.as_view(), name='groups'),

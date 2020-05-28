@@ -6,6 +6,9 @@ from domain.controllers.MainController import MainController
 from domain.services.ManagerSalesPresenters import ManagerSaleViewModel, ManagerSalesPresenter
 from domain.services.ManagerProductsPresenters import ManagerProductViewModel, ManagerProductsPresenter
 
+from domain.services.ManagerProductionPresenters import ManagerProductionBatchViewModel, ManagerProductionBatchPresenter
+
+
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie,csrf_exempt, csrf_protect 
 
