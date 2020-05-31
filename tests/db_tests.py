@@ -26,6 +26,8 @@ from domain.production.ProductionBatch import ProductionBatch
 from domain.production.ProductionBatchDataAccessInterface import ProductionBatchDataAccessInterface
 from domain.dataAccess.ProductionBatchDataAccess import ShelveProductionBatchDataAccess
 
+# from domain.dataAccess.DjangoDataAccess.DjangoDatabase import DjangoDataBaseManager
+
 dblocation = "domain/dataAccess/ShelveDatabase/"
 
 class DbSetup:
@@ -516,3 +518,13 @@ class ProductionDataAccessTest(unittest.TestCase):
 
         for batch in production_batches:
             self.assertEqual("2020-01-01", batch.date)
+
+
+# class DjangoDataBaseTest(unittest.TestCase):
+
+#     def setupDb(self):
+#         self.djangoDbMgr = DjangoDataBaseManager()
+    
+#     def test_save(self):
+#         sale = Sale(quantity=2)
+#         self.djangoDbMgr.save('','Sale',sale)
