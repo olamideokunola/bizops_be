@@ -106,6 +106,10 @@ class ManagerManageSalesService(ManagerSaleInputInterface):
         # create empty sale
         self.sale = Sale()
 
+        print('In create sale!')
+        print('In create sale!, productid is: ' + str(self.managerSaleInputData.productid))
+
+
         # get product and customer from database using the ids
         product = self.productsDataAccess.get_product(self.managerSaleInputData.productid)
         
@@ -141,6 +145,7 @@ class ManagerManageSalesService(ManagerSaleInputInterface):
             self.managerSalePresenter.set_feedback(self.managerSaleOutputData)
 
     def add_day_sale(self):
+        print('In add_day_dale!')
         # Check the current date and compare to the date entered
         inputDate = self.managerSaleInputData.date
 

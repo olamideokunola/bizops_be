@@ -332,6 +332,9 @@ class Sales(ManagerSaleBaseView):
         user = request.user
         print('User is: ' + str(user))
         print('date: ' + str(self.date))
+        print('productid: ' + str(self.productid))
+        print('quantity: ' + str(self.quantity))
+        print('price: ' + str(self.price))
         controller.add_day_sale(
             productid=self.productid,
             quantity=self.quantity,

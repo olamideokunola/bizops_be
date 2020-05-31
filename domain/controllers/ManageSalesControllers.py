@@ -11,12 +11,17 @@ class ManagerSaleServiceController:
             self.managerSaleService = managerSaleService
 
     def add_day_sale(self, productid, quantity, price, date, customerid, creator, authorizations, groups):
+        
         self.managerSaleInputData.productid = productid
         self.managerSaleInputData.quantity = quantity
         self.managerSaleInputData.price = price
 
+        print('In controller, add_day_sale! date is' + str(date))
+
         # date is expected as a dictionary
         self.managerSaleInputData.date = datetime.date(date['year'], date['month'], date['day'])
+
+        print('In controller, add_day_sale!')
 
         self.managerSaleInputData.customerid = customerid
         self.managerSaleInputData.creator = creator
