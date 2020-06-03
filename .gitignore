@@ -1,2 +1,8 @@
-tests/db_tests.py
-tests/__pycache__/db_tests.cpython-36.pyc
+tests/
+domain/dataAccess/ShelveDatabase/salesdb/
+web/uploaded/productphotos/
+domain/services/__pycache__/ManagerProductionServices.cpython-36.pyc
+web/bizops_backend/sales_api/__pycache__/managerProductionViews.cpython-36.pyc
+domain/controllers/__pycache__/ManageProductionControllers.cpython-36.pyc
+web/uploaded/productphotos/2.png
+web/uploaded/productphotos/1.png

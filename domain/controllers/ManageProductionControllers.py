@@ -20,6 +20,8 @@ class ManagerProductionBatchServiceController:
         self.managerProductionBatchInputData.supervisor = params["supervisor"] if params["supervisor"] != None else None
         self.managerProductionBatchInputData.assistants = params["assistants"] if params["assistants"] != None else None
         self.managerProductionBatchInputData.problems = params ["problems"] if params["problems"] != None else None
+        
+        self.managerProductionBatchInputData.groups = params ["groups"] if params["groups"] != None else None
 
         self.managerProductionBatchService.add_day_production_batch()
 

@@ -42,6 +42,9 @@ class ManagerProductionBaseView(View):
         self.request_params['supervisor'] = batch["supervisor"] if 'supervisor' in batch.keys() else None
         self.request_params['assistants'] = batch["assistants"] if 'assistants' in batch.keys() else None
         self.request_params['problems'] = batch ["problems"] if 'problems' in batch.keys() else None
+        
+        user = request.user
+        self.request_params['groups'] = user['groups']
 
         print('self.request_params is: ' + str(self.request_params))
 
