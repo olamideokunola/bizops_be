@@ -83,10 +83,15 @@ class Products(ManagerProductBaseView):
         controller = self.controller.manageProductsServiceController
         self.controller.manageProductsServiceController.create_product(self.name, self.group, self.date, self.units)
         
+        print('Back from service ' ) 
+
         feedback = self.viewModel.get_feedback()
+
+        print('feedback is: ' + str(feedback)) 
 
         if feedback['status'] == 'Success':
             print('In success, feedback is: '+ str(feedback))
+            print('In success, product is: '+ str(self.viewModel.get_product()))
             # return JsonResponse(self.viewModel.get_product(), safe=False)
             return JsonResponse({'status': feedback['status'], 'product': self.viewModel.get_product()}, safe=False)
             # return JsonResponse({'status': feedback['status'], 'daysale': self.viewModel.get_sale(), 'daysales': self.viewModel.get_day_sales()}, safe=False)

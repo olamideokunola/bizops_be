@@ -121,4 +121,8 @@ class ManagerProductsPresenter(BasePresenter, ManagerProductOutputInterface):
         }
     
     def set_feedback(self, managerProductOutputData):
+        print('In set feedback')
+        # print('In Presenter, about to set feedback, fedback is ' + print(managerProductOutputData.feedback))
         self.managerProductViewModel.feedback = managerProductOutputData.feedback
+        print('In set feedback, feedback set')
+        # print('In Presenter, feedback: ' + print(self.managerProductViewModel.feedback))

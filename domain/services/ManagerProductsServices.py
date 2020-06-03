@@ -58,9 +58,9 @@ class ManagerProductOutputInterface(ABC):
     @abstractmethod
     def set_units(self, managerProductOutputData):
         pass
-    
+
     @abstractmethod
-    def set_feedback(self, managerSaleOutputData):
+    def set_feedback(self, managerProductOutputData):
         pass
 
 class ManagerProductInputData():
@@ -77,6 +77,7 @@ class ManagerProductInputData():
     price = None
     prices = None
     date = None
+    feedback = None
 
 class ManagerProductOutputData():
     products = []
@@ -84,6 +85,7 @@ class ManagerProductOutputData():
     units = []
     unit = None
     unitid = None
+    feedback = None
 
 # a class for MangerProductsService
 class ManagerManageProductsService(ManagerProductsInputInterface):
@@ -146,18 +148,23 @@ class ManagerManageProductsService(ManagerProductsInputInterface):
         group = self.managerProductInputData.group
         units = self.managerProductInputData.units
 
+        print('In create_product, name is: ' + name) 
+
         products = self.productsDataAccess.get_products()
         productNames = [ product.name for product in products ] 
+
+        print('In create_product, productNames are: ' + str(productNames)) 
         
         if name in productNames:
+            print('Name exists') 
             self.managerProductOutputData.feedback = {
                     'status': 'Failure',
                     'message': 'Product name already exists!'
                 }
             self.managerProductPresenter.set_feedback(self.managerProductOutputData)
-
+ 
         else:
-            
+            print('Name does not exist') 
             product = Product(name=name)
             product.group = group
             product.units = units
@@ -167,17 +174,28 @@ class ManagerManageProductsService(ManagerProductsInputInterface):
 
             # save new sale to database
             savedproduct = self.productsDataAccess.save(product)
+            
+            print('Product saved') 
 
             # if save is successful set output data (product) and format presenter view data
             if savedproduct != None:
+                print('Product saved and confirmed')
                 self.managerProductOutputData.product = savedproduct
 
                 self.managerProductPresenter.set_product(self.managerProductOutputData)
+                
+                print('In Service, about to set Feedback')
 
                 self.managerProductOutputData.feedback = {
                     'status': 'Success',
                     'message': 'Product created'
                 }
+
+                print('In service about to set feedback in Presenter: ' + str(self.managerProductOutputData.feedback))
+
+                self.managerProductPresenter.set_feedback(self.managerProductOutputData)
+
+                print('Feedback set')
 
     def update_product(self):
         print('product id is: ' + str(self.managerProductInputData.productid))
