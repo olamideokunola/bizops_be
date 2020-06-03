@@ -58,6 +58,10 @@ class ManagerProductOutputInterface(ABC):
     @abstractmethod
     def set_units(self, managerProductOutputData):
         pass
+    
+    @abstractmethod
+    def set_feedback(self, managerSaleOutputData):
+        pass
 
 class ManagerProductInputData():
     productid = None
@@ -142,21 +146,38 @@ class ManagerManageProductsService(ManagerProductsInputInterface):
         group = self.managerProductInputData.group
         units = self.managerProductInputData.units
 
-        product = Product(name=name)
-        product.group = group
-        product.units = units
+        products = self.productsDataAccess.get_products()
+        productNames = [ product.name for product in products ] 
+        
+        if name in productNames:
+            self.managerProductOutputData.feedback = {
+                    'status': 'Failure',
+                    'message': 'Product name already exists!'
+                }
+            self.managerProductPresenter.set_feedback(self.managerProductOutputData)
 
-        # set today's date for daysale
-        product.date = date.today()
+        else:
+            
+            product = Product(name=name)
+            product.group = group
+            product.units = units
 
-        # save new sale to database
-        savedproduct = self.productsDataAccess.save(product)
+            # set today's date for daysale
+            product.date = date.today()
 
-        # if save is successful set output data (product) and format presenter view data
-        if savedproduct != None:
-            self.managerProductOutputData.product = savedproduct
+            # save new sale to database
+            savedproduct = self.productsDataAccess.save(product)
 
-            self.managerProductPresenter.set_product(self.managerProductOutputData)
+            # if save is successful set output data (product) and format presenter view data
+            if savedproduct != None:
+                self.managerProductOutputData.product = savedproduct
+
+                self.managerProductPresenter.set_product(self.managerProductOutputData)
+
+                self.managerProductOutputData.feedback = {
+                    'status': 'Success',
+                    'message': 'Product created'
+                }
 
     def update_product(self):
         print('product id is: ' + str(self.managerProductInputData.productid))

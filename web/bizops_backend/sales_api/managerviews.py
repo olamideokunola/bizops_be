@@ -82,7 +82,19 @@ class Products(ManagerProductBaseView):
 
         controller = self.controller.manageProductsServiceController
         self.controller.manageProductsServiceController.create_product(self.name, self.group, self.date, self.units)
-        return JsonResponse(self.viewModel.get_product(), safe=False)
+        
+        feedback = self.viewModel.get_feedback()
+
+        if feedback['status'] == 'Success':
+            print('In success, feedback is: '+ str(feedback))
+            # return JsonResponse(self.viewModel.get_product(), safe=False)
+            return JsonResponse({'status': feedback['status'], 'product': self.viewModel.get_product()}, safe=False)
+            # return JsonResponse({'status': feedback['status'], 'daysale': self.viewModel.get_sale(), 'daysales': self.viewModel.get_day_sales()}, safe=False)
+        elif feedback['status'] =='Failure':
+            print('In failure, feedback is: '+ str(feedback))
+            return JsonResponse(feedback, safe=False)
+        
+        
     
     def delete(self, request):
         self.controller.manageProductsServiceController.delete_all_products()

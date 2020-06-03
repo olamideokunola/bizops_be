@@ -12,6 +12,7 @@ class ManagerProductViewModel:
     units = []
     unit = None
     indent = 4
+    feedback = {}
 
     def __init__(self):
         pass
@@ -32,6 +33,10 @@ class ManagerProductViewModel:
     def get_product(self):
         # set to JSON
         return self.product
+
+    def get_feedback(self):
+        # set to JSON
+        return self.feedback
 
 class ManagerProductsPresenter(BasePresenter, ManagerProductOutputInterface):
     managerProductViewModel = None
@@ -114,3 +119,6 @@ class ManagerProductsPresenter(BasePresenter, ManagerProductOutputInterface):
                 } for price in managerProductOutputData.product.prices
             ]
         }
+    
+    def set_feedback(self, managerProductOutputData):
+        self.managerProductViewModel.feedback = managerProductOutputData.feedback
