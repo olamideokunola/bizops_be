@@ -23,7 +23,10 @@ class ManagerManageProductServiceTest(unittest.TestCase):
     managerProductionBatchOutputData = ManagerProductionBatchOutputData()
     managerProductionBatchViewModel = ManagerProductionBatchViewModel()
     managerProductionBatchPresenter = ManagerProductionBatchPresenter(ManagerProductionBatchViewModel)
-        
+    
+    today = datetime.date.today()
+    yesterday = datetime.date(today.year, today.month, today.day-1)
+
     def setup_service(self):
         self.managerManageProductionBatchService = ManagerManageProductionBatchService(
             self.productionBatchDataAccess,
@@ -58,11 +61,24 @@ class ManagerManageProductServiceTest(unittest.TestCase):
         self.managerProductionBatchInputData.assistants = ["Chidinma", "Busayo"]
         self.managerProductionBatchInputData.problems = ["Insufficient butter", "Intermittent stoppage of mixer"]
 
+    def test_date_is_yesterday_or_today(self):
+        self.setup_service()
+
+        print('today is ' + str(self.today))
+        print('yesterday is '+ str(self.yesterday))
+        
+        todayCheck = self.managerManageProductionBatchService._date_is_yesterday_or_today(str(self.today))
+        yesterdayCheck = self.managerManageProductionBatchService._date_is_yesterday_or_today(str(self.yesterday))
+
+        self.assertTrue(todayCheck)
+        self.assertTrue(yesterdayCheck)
 
     def test_add_day_production_batch(self):
         self.setup_service()
 
         self.create_day_production_batch_input()
+
+        self.managerProductionBatchInputData.date = self.today
 
         # inputData = self.managerProductInputData
         self.managerManageProductionBatchService.add_day_production_batch()
