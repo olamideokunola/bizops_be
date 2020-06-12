@@ -52,6 +52,9 @@ class ManagerManageSaleServiceTest(unittest.TestCase):
         inputData.customerid = customerid
         inputData.price = price
         inputData.quantity = quantity
+        date = {"year": 2020, "month": 6, "day":11}
+        inputData.date = datetime.date(date['year'], date['month'], date['day'])
+
 
     def test_add_day_sale(self):
         self.setup_service()
@@ -59,6 +62,9 @@ class ManagerManageSaleServiceTest(unittest.TestCase):
         # Create first sale
         self.create_sales_input(1,1,100,2)
         self.managerManageSalesService.add_day_sale()
+
+        self.managerSaleInputData.groups = [{'description': 'manager_group'}]
+
 
         # get intermediate count
         intermediatecount =  len(self.managerSaleOutputData.daysales)
@@ -109,8 +115,9 @@ class ManagerManageSaleServiceTest(unittest.TestCase):
         self.setup_service()
 
         inputData = self.managerSaleInputData
-        inputData.saleid = 11
+        inputData.saleid = 22
         inputData.price = 250
+        self.managerSaleInputData.groups = [{'description': 'manager_group'}]
 
         self.managerManageSalesService.update_sale()
 
