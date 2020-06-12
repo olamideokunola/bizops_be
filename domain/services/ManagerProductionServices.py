@@ -153,7 +153,7 @@ class ManagerManageProductionBatchService(ManagerProductionBatchInputInterface):
 
         else:
             # If date is not today, check if user is in manager_group, if return user can only save in the current day
-            print('Date is not today')
+            print('Date is not today or yesterday')
 
             groups = self.managerProductionBatchInputData.groups
             print('number of groups is: ' + str(len(groups)))
@@ -173,11 +173,7 @@ class ManagerManageProductionBatchService(ManagerProductionBatchInputInterface):
                 self.managerProductionBatchPresenter.set_production_batch(self.managerProductionBatchOutputData)
                 self.managerProductionBatchPresenter.set_feedback(self.managerProductionBatchOutputData)
     
-    def update_day_production_batch(self):
-        id = self.managerProductionBatchInputData.id
-        productionbatch = self.productionBatchDataAccess.get(id)
-        print("ProductionBatch id is: " + str(productionbatch.id))
-
+    def __update_day_production_batch(self, productionbatch):
         if self.managerProductionBatchInputData.productType != None: productionbatch.productType = self.managerProductionBatchInputData.productType 
         if self.managerProductionBatchInputData.flourQuantity != None: productionbatch.flourQuantity = self.managerProductionBatchInputData.flourQuantity
         if self.managerProductionBatchInputData.date != None: productionbatch.date = self.managerProductionBatchInputData.date
@@ -195,6 +191,44 @@ class ManagerManageProductionBatchService(ManagerProductionBatchInputInterface):
         
         self.managerProductionBatchOutputData.dayproductionbatches = self.productionBatchDataAccess.get_day_production_batches(savedproductionbatch.date)
         self.managerProductionBatchPresenter.set_day_production_batches(self.managerProductionBatchOutputData)
+
+
+    def update_day_production_batch(self):
+        id = self.managerProductionBatchInputData.id
+        productionbatch = self.productionBatchDataAccess.get(id)
+        print("ProductionBatch id is: " + str(productionbatch.id))
+        print("ProductionBatch date is: " + str(productionbatch.date))
+
+        inputDate =  str(productionbatch.date)
+
+        # Continue with update only if date is yesterday or today
+        if self._date_is_yesterday_or_today(str(inputDate)):
+            print('Date is today or yesterday')
+            # update ProductionBatch
+            self.__update_day_production_batch(productionbatch)
+        # Continue with update if user is Manager
+        else:
+            print('Date is not today or yesterday')
+
+            groups = self.managerProductionBatchInputData.groups
+            print('number of groups is: ' + str(len(groups)))
+
+            groupnames = [ group['description'] for group in groups]
+
+            print(str(groupnames))
+
+            if len(groups) > 0 and 'manager_group' in groupnames:
+                self.__update_day_production_batch(productionbatch)
+            else:  
+                self.managerProductionBatchOutputData.productionbatch = None
+                self.managerProductionBatchOutputData.feedback = {
+                    'status': 'Failure',
+                    'message': 'You can only save ProductionBatch in the current day!'
+                }
+                self.managerProductionBatchPresenter.set_production_batch(self.managerProductionBatchOutputData)
+                self.managerProductionBatchPresenter.set_feedback(self.managerProductionBatchOutputData)
+
+            
 
     def get_day_production_batch(self):
         id = self.managerProductionBatchInputData.id

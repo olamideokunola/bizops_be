@@ -91,9 +91,11 @@ class ManagerManageProductServiceTest(unittest.TestCase):
     def test_update_day_production_batch(self):
         self.setup_service()
 
-        self.managerProductionBatchInputData.id = 23
-        self.managerProductionBatchInputData.date = "2020-05-27"
+        self.managerProductionBatchInputData.id = 1
+        self.managerProductionBatchInputData.date = str(self.today)
         self.managerProductionBatchInputData.baker = "Remi"
+
+        self.managerProductionBatchInputData.groups = [{'description': 'manager_group'}]
 
         self.managerManageProductionBatchService.update_day_production_batch()
 
