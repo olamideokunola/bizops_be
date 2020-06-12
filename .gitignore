@@ -1,4 +1,5 @@
 tests/
+domain/dataAccess/ShelveDatabase/salesdb/
 web/uploaded/productphotos/
 domain/services/__pycache__/
 web/bizops_backend/sales_api/__pycache__/
