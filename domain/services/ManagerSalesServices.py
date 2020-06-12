@@ -11,6 +11,8 @@ from domain.products.UnitsDataAccessInterface import UnitsDataAccessInterface
 from domain.customers.CustomersDataAccessInterface import CustomersDataAccessInterface
 from domain.sales.SalesDataAccessInterface import SalesDataAccessInterface
 
+from domain.services.ServiceUtils import date_is_yesterday_or_today
+
 # an interface for manager sales interactor input boundary interface
 class ManagerSaleInputInterface(ABC):
     @abstractmethod
@@ -64,6 +66,8 @@ class ManagerSaleInputData():
     customerid = None
     date = None
     saleid = None
+    groups = []
+    creator = None
 
 class ManagerSaleOutputData():
     sale = Sale()
@@ -156,9 +160,14 @@ class ManagerManageSalesService(ManagerSaleInputInterface):
         todayStr = '{:%Y-%m-%d}'.format(date.today())
         print('todayStr is: ' + todayStr)
 
-        if inputDate == todayStr:
-            print('Date is today')
-            # create sale
+        # if inputDate == todayStr:
+        #     print('Date is today')
+        #     # create sale
+        #     self.__create_sale()
+        
+        if date_is_yesterday_or_today(str(inputDate)):
+            print('Date is today or yesterday')
+            # create ProductionBatch
             self.__create_sale()
             
         else:
@@ -204,12 +213,7 @@ class ManagerManageSalesService(ManagerSaleInputInterface):
         self.managerSaleOutputData.sales = self.salesDataAccess.get_sales()
         self.managerSalePresenter.set_sales(self.managerSaleOutputData)
 
-
-    def update_sale(self):
-        # Get sale
-        if self.managerSaleInputData.saleid != None:
-            self.sale = self.salesDataAccess.get(self.managerSaleInputData.saleid)
-        
+    def __update_sale(self):
         # Update sale
         if self.managerSaleInputData.productid != None:
             self.sale.product = self.productsDataAccess.get_product(self.managerSaleInputData.productid)
@@ -234,6 +238,41 @@ class ManagerManageSalesService(ManagerSaleInputInterface):
         self.managerSaleOutputData.daysales = self.salesDataAccess.get_day_sales(date.today())
         self.managerSalePresenter.set_sale(self.managerSaleOutputData)
         self.managerSalePresenter.set_day_sales(self.managerSaleOutputData)
+
+    def update_sale(self):
+        # Get sale
+        if self.managerSaleInputData.saleid != None:
+            self.sale = self.salesDataAccess.get(self.managerSaleInputData.saleid)
+            date = self.sale.date
+
+            print('Date is: ' + str(date))
+
+            if date_is_yesterday_or_today(str(date)):
+                print('Date is today or yesterday')
+                # create ProductionBatch
+                self.__update_sale()
+        
+            else:
+                # If date is not today, check if user is in manager_group, if return user can only save in the current day
+                print('Date is not today')
+
+                groups = self.managerSaleInputData.groups
+                print('number of groups is: ' + str(len(groups)))
+
+                groupnames = [ group['description'] for group in groups]
+
+                print(str(groupnames))
+
+                if len(groups) > 0 and 'manager_group' in groupnames:
+                    self.__update_sale()
+                else:  
+                    self.managerSaleOutputData.sale = None
+                    self.managerSaleOutputData.feedback = {
+                        'status': 'Failure',
+                        'message': 'You can only save sale in the current day!'
+                    }
+                    self.managerSalePresenter.set_sale(self.managerSaleOutputData)
+                    self.managerSalePresenter.set_feedback(self.managerSaleOutputData)
 
     def get_sale(self):
         self.managerSaleOutputData.sale = self.salesDataAccess.get_day_sale(id=self.managerSaleInputData.id)

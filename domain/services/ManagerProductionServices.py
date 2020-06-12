@@ -6,6 +6,9 @@ from calendar import Calendar
 from domain.production.ProductionBatch import ProductionBatch
 from domain.production.ProductionBatchDataAccessInterface import ProductionBatchDataAccessInterface
 
+from domain.services.ServiceUtils import date_is_yesterday_or_today
+
+
 # an interface for manager ProductionBatchs interactor input boundary interface
 class ManagerProductionBatchInputInterface(ABC):
     @abstractmethod
@@ -117,18 +120,6 @@ class ManagerManageProductionBatchService(ManagerProductionBatchInputInterface):
             self.managerProductionBatchPresenter.set_day_production_batches(self.managerProductionBatchOutputData)
             self.managerProductionBatchPresenter.set_feedback(self.managerProductionBatchOutputData)
 
-    def _date_is_yesterday_or_today(self, dateToCheck):
-        today = date.today()
-        yesterday = date(today.year, today.month, today.day-1)
-        
-        print('today is ' + str(today))
-        print('yesterday is '+ str(yesterday))
-
-        if dateToCheck.__eq__(str(today)) or dateToCheck.__eq__(str(yesterday)):
-            return True
-        else:
-            return False
-
     def add_day_production_batch(self):
         # Check the current date and compare to the date entered
         inputDate = self.managerProductionBatchInputData.date
@@ -146,7 +137,7 @@ class ManagerManageProductionBatchService(ManagerProductionBatchInputInterface):
         #     # create ProductionBatch
         #     self.__create_production_batch()
 
-        if self._date_is_yesterday_or_today(str(inputDate)):
+        if date_is_yesterday_or_today(str(inputDate)):
             print('Date is today or yesterday')
             # create ProductionBatch
             self.__create_production_batch()
@@ -202,7 +193,7 @@ class ManagerManageProductionBatchService(ManagerProductionBatchInputInterface):
         inputDate =  str(productionbatch.date)
 
         # Continue with update only if date is yesterday or today
-        if self._date_is_yesterday_or_today(str(inputDate)):
+        if date_is_yesterday_or_today(str(inputDate)):
             print('Date is today or yesterday')
             # update ProductionBatch
             self.__update_day_production_batch(productionbatch)
