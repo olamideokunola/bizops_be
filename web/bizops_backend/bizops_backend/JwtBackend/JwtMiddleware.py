@@ -10,13 +10,20 @@ class JwtMiddleware:
     def __call__(self, request):
         # Code to be executed for each request before
         # the view (and later middleware) are called.
-
         payload = self.jwtManager.decode_token(request)
 
         if payload != None:
             print('In JwtMiddleware, Payload is: ' + str(payload))
-            request.user = payload['user'] if 'user' in payload else None
+            if 'user' in payload:
+                request.user = payload['user']['username'] 
+            elif 'username' in payload:
+                request.user = payload['username'] 
+                print('request.user is: ' + request.user)
+            else:
+                print('In JwtMiddleware, user or username not in payload!')
+                request.user = None
         else:
+            print('In JwtMiddleware, no Payload!')
             request.user = None
 
         response = self.get_response(request)

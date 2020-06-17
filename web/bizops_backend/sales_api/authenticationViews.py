@@ -159,10 +159,12 @@ class Users(AuthenticationBaseView):
         #if username != None:
             # Get controller & authenticate with credentials
         controller = self.controller.authenticationController
+        controller.getuser(request.user)
+        print('In Users.get, request.user is: ' + request.user)
         controller.getusers()
 
         # Get response from model
-        return JsonResponse({'users': self.viewModel.users, 'messages':self.viewModel.messages}, safe=False)
+        return JsonResponse({'users': self.viewModel.users, 'user': self.viewModel.user, 'messages':self.viewModel.messages}, safe=False)
 
     def post(self, request):
         # Get param from request body as python object
@@ -228,7 +230,7 @@ class User(AuthenticationBaseView):
         #tokenManager = JwtTokenManager()
         #username = tokenManager.authenticate(request)
 
-        print('logged username: '+ str(username))
+        print('In User, logged username: '+ str(username))
         
         if username != None:
             # Get controller & authenticate with credentials
