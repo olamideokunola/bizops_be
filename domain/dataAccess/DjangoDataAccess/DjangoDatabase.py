@@ -45,13 +45,44 @@ class AbstractModelManager(ABC):
     def delete(self, entityObject):
         pass
 
-    def __materialize(self):
-        pass
-
     def get_all(self):
         pass
 
-class AuthorizationModelManager(AbstractModelManager):
+class Materializer(ABC):
+    def create(self, entityObject):
+        pass
+    
+    def materialize(self, entityObject):
+        pass
+
+class ModelManager(AbstractModelManager):
+    ModelClass = None
+
+    def create(self, entityObject):
+        pass
+
+    def get(self, id):
+        return self.materialize(self.ModelClass.objects.get(pk=id))
+
+    def delete(self, authObject):
+        if authObject.id != None:
+
+            auth = self.ModelClass.objects.get(pk=authObject.id)
+
+            auth.delete()
+
+            return self.materialize(auth)
+
+    def get_all(self):
+        print('In getall')
+        if len(self.ModelClass.objects.all()) > 0:
+            print('Items more than 0')
+            return [self.materialize(auth) for auth in self.ModelClass.objects.all() ] 
+
+
+class AuthorizationModelManager(ModelManager, Materializer):
+    ModelClass = Authorization
+
     def create(self, authObject):
         if authObject == None:
             auth = Authorization.objects.create()
@@ -60,23 +91,23 @@ class AuthorizationModelManager(AbstractModelManager):
                 auth = Authorization.objects.create(
                     description = authObject.description,
                     model = authObject.model,
-                    create = authObject.can_create,
-                    change = authObject.can_change,
-                    view = authObject.can_view,
-                    delete = authObject.can_delete,
+                    can_create = authObject.create,
+                    can_change = authObject.change,
+                    can_view = authObject.view,
+                    can_delete = authObject.delete,
                 )
             else:
                 auth = Authorization.objects.get(pk=authObject.id)
                 auth.description = authObject.description
                 auth.model = authObject.model
-                auth.create = authObject.create
-                auth.change = authObject.change
-                auth.view = authObject.view
-                auth.delete = authObject.delete
+                auth.can_create = authObject.create
+                auth.can_change = authObject.change
+                auth.can_view = authObject.view
+                auth.can_delete = authObject.delete
 
-        return self.__materialize(auth)
+        return self.materialize(auth)
 
-    def __materialize(self, authModel):
+    def materialize(self, authModel):
         return AuthorizationEntity(
             id=authModel.id,
             model=authModel.model,
@@ -86,22 +117,6 @@ class AuthorizationModelManager(AbstractModelManager):
             view=authModel.can_view,
             delete=authModel.can_delete,
         )
-
-    def get(self, id):
-        return self.__materialize(Authorization.objects.get(pk=id))
-
-    def get_all(self):
-        if len(Authorization.objects.all()) > 0:
-            return [self.__materialize(auth) for auth in Authorization.objects.all() ] 
-
-    def delete(self, authObject):
-        if authObject.id != None:
-
-            auth = Authorization.objects.get(pk=authObject.id)
-
-            auth.delete()
-
-            return self.__materialize(auth)
 
 class SaleModelManager:
     def create(self, outerSale):

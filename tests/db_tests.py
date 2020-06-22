@@ -598,14 +598,15 @@ class DjangoDataBaseAuthorizationModelManagerTest(unittest.TestCase):
         self.assertGreater(savedAuth.id,0)
 
     def test_get(self):
-        retrievedAuth = djangoDbMgr.get('','Authorization', 1)
+        id=5
+        retrievedAuth = djangoDbMgr.get('','Authorization', id)
 
         self.assertIsNotNone(retrievedAuth)
-        self.assertEqual(retrievedAuth.id, 1)
+        self.assertEqual(retrievedAuth.id,id)
 
     def test_update(self):
         auth = Authorization(
-            id = 1,
+            id = 5,
             model='Sale',
             description='Sale Authorization changed',
             create=True,
@@ -638,7 +639,7 @@ class DjangoDataBaseAuthorizationModelManagerTest(unittest.TestCase):
         items_pre = len(djangoDbMgr.get_all('','Authorization'))
         print('No of items before deletion: ', items_pre)
         
-        itemtodelete = djangoDbMgr.get('','Authorization', 4)
+        itemtodelete = djangoDbMgr.get('','Authorization', 5)
         print('auth to delete is', itemtodelete.model)
 
         deletedAuth = djangoDbMgr.delete('', 'Authorization', itemtodelete)
