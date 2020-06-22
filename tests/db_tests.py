@@ -6,7 +6,7 @@ from domain.sales.SalesDataAccessInterface import SalesDataAccessInterface
 from domain.dataAccess.ShelveDatabase import ShelveDataBaseManager, Database
 from domain.dataAccess.SalesDataAccess import ShelveSalesDataAccess
 
-from domain.products.Products import Product
+from domain.products.Products import Product, Price
 from domain.products.ProductsDataAccessInterface import ProductsDataAccessInterface
 from domain.dataAccess.ProductsDataAccess import ShelveProductsDataAccess
 
@@ -14,7 +14,7 @@ from domain.customers.Customers import Customer
 from domain.customers.CustomersDataAccessInterface import CustomersDataAccessInterface
 from domain.dataAccess.CustomersDataAccess import ShelveCustomersDataAccess
 
-from domain.users.Users import Group
+from domain.users.Users import Group, Authorization
 from domain.users.GroupsDataAccessInterface import GroupsDataAccessInterface
 from domain.dataAccess.GroupsDataAccess import ShelveGroupsDataAccess
 
@@ -26,7 +26,8 @@ from domain.production.ProductionBatch import ProductionBatch
 from domain.production.ProductionBatchDataAccessInterface import ProductionBatchDataAccessInterface
 from domain.dataAccess.ProductionBatchDataAccess import ShelveProductionBatchDataAccess
 
-# from domain.dataAccess.DjangoDataAccess.DjangoDatabase import DjangoDataBaseManager
+from domain.dataAccess.DjangoDataAccess.DjangoDatabase import DjangoDataBaseManager
+
 
 dblocation = "domain/dataAccess/ShelveDatabase/"
 
@@ -53,9 +54,6 @@ class DbSetup:
         self.test_model_name = modelname
         self.newdb.create_model(self.test_model_name)
         self.testmodel = self.newdb.get_model(self.test_model_name)
-    
-    
-        
 
 class ShelveDataBaseTest(unittest.TestCase):
     shelvedb = ShelveDataBaseManager("domain/dataAccess/ShelveDatabase/")
@@ -520,11 +518,133 @@ class ProductionDataAccessTest(unittest.TestCase):
             self.assertEqual("2020-01-01", batch.date)
 
 
-# class DjangoDataBaseTest(unittest.TestCase):
+djangoDbMgr = DjangoDataBaseManager('')
 
-#     def setupDb(self):
-#         self.djangoDbMgr = DjangoDataBaseManager()
+class DjangoDataBaseTest(unittest.TestCase):
+
+    def setupDb(self):
+        self.djangoDbMgr = djangoDbMgr
     
-#     def test_save(self):
-#         sale = Sale(quantity=2)
-#         self.djangoDbMgr.save('','Sale',sale)
+    def test_save(self):
+        self.setupDb()
+
+        price = Price(
+            fromDate=None,
+            toDate=None,
+            amount=200,
+            currency='NGN'
+        )
+
+        product = Product(
+            name='Test Product 1',
+            price=price
+        )
+        sale = Sale(
+            product=product,
+            price=price,
+            quantity=2
+        )
+
+        savedSale = self.djangoDbMgr.save('','Sale',sale)
+
+        if savedSale != None:
+            print('savedSale is: ', savedSale)
+
+        self.assertEqual(2, savedSale.quantity)
+
+    def test_create_new_id(self):
+        self.setupDb()
+        newId = self.djangoDbMgr.create_new_id('','Sale')
+
+        print(newId)
+
+        self.assertIsNotNone(newId)
+
+    def test_get(self):
+        self.setupDb()
+        sale = self.djangoDbMgr.get('','Sale',1)
+
+        print(sale.id)
+
+        self.assertEquals(1, sale.id)
+
+class DjangoDataBaseAuthorizationModelManagerTest(unittest.TestCase):
+    
+    def test_create_new_id(self):
+        
+        newId = djangoDbMgr.create_new_id('','Authorization')
+
+        print(newId)
+
+        self.assertIsNotNone(newId)
+
+    def test_create(self):
+        auth = Authorization(
+            model='Sale',
+            description='Sale Authorization',
+            create=True,
+            change=False,
+            view=True,
+            delete=False,
+        )
+        savedAuth = djangoDbMgr.save('','Authorization', auth)
+
+        print('savedAuth descriotion is: ' + savedAuth.description)
+
+        self.assertIsNotNone(savedAuth)
+        self.assertEqual(savedAuth.description, auth.description)
+        self.assertTrue(savedAuth.view)
+        self.assertFalse(savedAuth.delete)
+        self.assertGreater(savedAuth.id,0)
+
+    def test_get(self):
+        retrievedAuth = djangoDbMgr.get('','Authorization', 1)
+
+        self.assertIsNotNone(retrievedAuth)
+        self.assertEqual(retrievedAuth.id, 1)
+
+    def test_update(self):
+        auth = Authorization(
+            id = 1,
+            model='Sale',
+            description='Sale Authorization changed',
+            create=True,
+            change=True,
+            view=True,
+            delete=True,
+        )
+
+        updatedAuth = djangoDbMgr.save('','Authorization', auth)
+
+        self.assertIsNotNone(updatedAuth)
+        self.assertTrue(updatedAuth.create)
+        self.assertTrue(updatedAuth.change)
+        self.assertTrue(updatedAuth.view)
+        self.assertTrue(updatedAuth.delete)
+        self.assertEqual(auth.id, updatedAuth.id)
+        self.assertEqual(auth.description, updatedAuth.description)
+
+
+    def test_getall(self):
+        auths = djangoDbMgr.get_all('','Authorization')
+        print('Number of items is: ', len(auths))
+
+        for auth in auths:
+            print ('auth is ', auth.description)
+
+        self.assertGreater(len(auths), 1)
+
+    def test_delete(self):
+        items_pre = len(djangoDbMgr.get_all('','Authorization'))
+        print('No of items before deletion: ', items_pre)
+        
+        itemtodelete = djangoDbMgr.get('','Authorization', 4)
+        print('auth to delete is', itemtodelete.model)
+
+        deletedAuth = djangoDbMgr.delete('', 'Authorization', itemtodelete)
+
+        items_post = len(djangoDbMgr.get_all('','Authorization'))
+        print('No of items after deletion: ', items_post)
+
+        self.assertIsNotNone(deletedAuth)
+        self.assertGreater(items_pre, items_post)

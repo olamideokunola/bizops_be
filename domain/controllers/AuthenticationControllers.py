@@ -48,6 +48,18 @@ class AuthenticationController:
         self.__set_authenticationInputData(inputData)
         
         self.authenticationService.createuser()
+    
+    def activateuser(self, inputData):
+        if inputData['id'] != None:
+            self.authenticationInputData.id = inputData['id']
+
+            self.authenticationService.activate_user()
+
+    def deactivateuser(self, inputData):
+        if inputData['id'] != None:
+            self.authenticationInputData.id = inputData['id']
+
+            self.authenticationService.deactivate_user()
 
     def deleteuser(self, inputData):
         if inputData['id'] != None:

@@ -3,26 +3,164 @@ import shelve
 import os
 
 from domain.dataAccess.DatabaseInterface import DatabaseManagerInterface
-from web.bizops_backend.sales_api.models import Sale
+
+import django
+from django.conf import settings
+
+os.environ['DJANGO_SETTINGS_MODULE'] = 'web.bizops_backend.bizops_backend.settings'
+print('Settings module: ' + os.environ['DJANGO_SETTINGS_MODULE'])
+
+import sys
+
+print('Settings module: ' + os.environ['DJANGO_SETTINGS_MODULE'])
+
+sales_api_module_path = settings.BASE_DIR 
+
+print('settings.BASE_DIR is ' + settings.BASE_DIR )
+
+if settings.BASE_DIR not in sys.path:
+    sys.path.append(settings.BASE_DIR)
+
+# for path in sys.path:
+#     print(path)
+
+try:
+    django.setup()
+except Exception as ex:
+    print(ex)
+
+
+from sales_api.models import Sale, Price, Product, Authorization
+from domain.sales.Sales import Sale as SaleEntity
+from domain.users.Users import Authorization as AuthorizationEntity
+from abc import ABC
+
+class AbstractModelManager(ABC):
+    def create(self, entityObject):
+        pass
+
+    def get(self, id):
+        pass
+
+    def delete(self, entityObject):
+        pass
+
+    def __materialize(self):
+        pass
+
+    def get_all(self):
+        pass
+
+class AuthorizationModelManager(AbstractModelManager):
+    def create(self, authObject):
+        if authObject == None:
+            auth = Authorization.objects.create()
+        else:
+            if authObject.id == 0 or authObject.id == None:
+                auth = Authorization.objects.create(
+                    description = authObject.description,
+                    model = authObject.model,
+                    create = authObject.can_create,
+                    change = authObject.can_change,
+                    view = authObject.can_view,
+                    delete = authObject.can_delete,
+                )
+            else:
+                auth = Authorization.objects.get(pk=authObject.id)
+                auth.description = authObject.description
+                auth.model = authObject.model
+                auth.create = authObject.create
+                auth.change = authObject.change
+                auth.view = authObject.view
+                auth.delete = authObject.delete
+
+        return self.__materialize(auth)
+
+    def __materialize(self, authModel):
+        return AuthorizationEntity(
+            id=authModel.id,
+            model=authModel.model,
+            description=authModel.description,
+            create=authModel.can_create,
+            change=authModel.can_change,
+            view=authModel.can_view,
+            delete=authModel.can_delete,
+        )
+
+    def get(self, id):
+        return self.__materialize(Authorization.objects.get(pk=id))
+
+    def get_all(self):
+        if len(Authorization.objects.all()) > 0:
+            return [self.__materialize(auth) for auth in Authorization.objects.all() ] 
+
+    def delete(self, authObject):
+        if authObject.id != None:
+
+            auth = Authorization.objects.get(pk=authObject.id)
+
+            auth.delete()
+
+            return self.__materialize(auth)
 
 class SaleModelManager:
     def create(self, outerSale):
-        sale = Sale.objects.create(
-            quantity = outerSale.quantity
-        )
-        sale.save()
+        print('In create')
 
-        print (sale.quantity)
+        if outerSale == None:
+            sale = Sale.objects.create()
+        else:
+            try:
+                product = Product.objects.get(name=outerSale.product.name)
+                print('Product is: ', str(product.id))
+                sale = Sale.objects.create(
+                    product = product,
+                    quantity = outerSale.quantity,
+                    price = outerSale.price.amount,
+                    date = outerSale.date
+                )
+
+                sale.save()
+                return sale
+
+            except Product.DoesNotExist:
+                print('Product does not Exist!')
+                return None
+    
+    def materialize(self, sale):
+        pass
+
+    
+    def get(self, id):
+        print('In get')
+
+        return Sale.objects.get(pk=id)
+
+    def get_all(self):
+        print('In get_all')
+        pass
+
+    def update(self, outerSale):
+        print('In update')
+        pass
+
+    def delete(self, outerSale):
+        print('In delete')
+        pass
+
+
 
 class DjangoDataBaseManager(DatabaseManagerInterface):
     saleModelManager = SaleModelManager()
+    authorizationModelManager = AuthorizationModelManager()
+    
     models = {
                 'Sale': saleModelManager,
                 # 'Product': Product, 
                 # 'Customer': Customer, 
                 # 'User': User, 
                 # 'Group': Group, 
-                # 'Authorization': Authorization, 
+                'Authorization': authorizationModelManager, 
                 # 'Price': Price,
                 # 'Unit': Unit,
                 # 'ProductionBatch': ProductionBatch
@@ -32,18 +170,26 @@ class DjangoDataBaseManager(DatabaseManagerInterface):
         pass
     
     def save(self, databasename, modelname, item):
+        print('In Save')
+
         model = self.models[modelname]
-        model.create(item)
-        return None
+        return model.create(item)
     
     def delete(self, databasename, modelname, item):
-        return None
+        model = self.models[modelname]
+        return model.delete(item)
 
     def create_new_id(self, databasename, modelname):
-        return None
+        print('In create_new_id')
+
+        item = self.save(databasename, modelname, None)
+        return item.id
  
     def get(self, databasename, modelname, id):
-        return None
+        print('In get')
+
+        model = self.models[modelname]
+        return model.get(id)
 
     def get_many(self, databasename, modelname, ids):
         return None
@@ -55,7 +201,8 @@ class DjangoDataBaseManager(DatabaseManagerInterface):
         return None
 
     def get_all(self, databasename, modelname):
-        return None
+        model = self.models[modelname]
+        return model.get_all()
 
 
         

@@ -25,9 +25,6 @@ class Parent:
         members.clear()
 
 class AuthorizationParent(Parent):
-
-    
-
     # __get_authorizations(self):
     #    return list(self.authorizations.values())
 
@@ -82,6 +79,7 @@ class User(AuthorizationParent, GroupParent):
     id=None
     authorizations = {}
     groups = {}
+    __active = False
 
     def __init__(self, firstname, lastname, username=None, password=None, email=None, phonenumber=None):
         self.person = Person(firstname=firstname,lastname=lastname)
@@ -111,6 +109,15 @@ class User(AuthorizationParent, GroupParent):
 
     def get_email(self):
         return self.person.get_email()
+
+    def get_active(self):
+        return self.__active
+
+    def activate(self):
+        self.__active = True
+
+    def deactivate(self):
+        self.__active = False
 
     #id = property(fget=get_username, fset=set_username)
 

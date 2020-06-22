@@ -142,6 +142,20 @@ class AuthenticationService(AuthenticationInputInterface):
 
         self.__present_user(user)
     
+    def activate_user(self):
+        id = self.inputData.id
+        user = self.userDataAccess.get(id)
+        user.activate()
+
+        self.__present_user(user)
+    
+    def deactivate_user(self):
+        id = self.inputData.id
+        user = self.userDataAccess.get(id)
+        user.deactivate()
+
+        self.__present_user(user)
+
     def deleteuser(self):
         id = self.inputData.id
         usertodelete = self.userDataAccess.get(id)
