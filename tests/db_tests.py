@@ -10,11 +10,11 @@ from domain.products.Products import Product, Price
 from domain.products.ProductsDataAccessInterface import ProductsDataAccessInterface
 from domain.dataAccess.ProductsDataAccess import ShelveProductsDataAccess
 
-from domain.customers.Customers import Customer
+from domain.customers.Customers import Customer, Person
 from domain.customers.CustomersDataAccessInterface import CustomersDataAccessInterface
 from domain.dataAccess.CustomersDataAccess import ShelveCustomersDataAccess
 
-from domain.users.Users import Group, Authorization
+from domain.users.Users import Group, Authorization, User
 from domain.users.GroupsDataAccessInterface import GroupsDataAccessInterface
 from domain.dataAccess.GroupsDataAccess import ShelveGroupsDataAccess
 
@@ -568,7 +568,7 @@ class DjangoDataBaseTest(unittest.TestCase):
 
         self.assertEquals(1, sale.id)
 
-class DjangoDataBaseAuthorizationModelManagerTest(unittest.TestCase):
+class AuthorizationDjangoDataBaseModelManagerTest(unittest.TestCase):
     
     def test_create_new_id(self):
         
@@ -639,7 +639,7 @@ class DjangoDataBaseAuthorizationModelManagerTest(unittest.TestCase):
         items_pre = len(djangoDbMgr.get_all('','Authorization'))
         print('No of items before deletion: ', items_pre)
         
-        itemtodelete = djangoDbMgr.get('','Authorization', 5)
+        itemtodelete = djangoDbMgr.get('','Authorization', 6)
         print('auth to delete is', itemtodelete.model)
 
         deletedAuth = djangoDbMgr.delete('', 'Authorization', itemtodelete)
@@ -649,3 +649,707 @@ class DjangoDataBaseAuthorizationModelManagerTest(unittest.TestCase):
 
         self.assertIsNotNone(deletedAuth)
         self.assertGreater(items_pre, items_post)
+
+class GroupDjangoDataBaseModelManagerTest(unittest.TestCase):
+    def test_create_new_id(self):
+        
+        newId = djangoDbMgr.create_new_id('','Group')
+
+        print(newId)
+
+        self.assertIsNotNone(newId)
+
+    def test_create(self):
+        grp = Group(
+            description='SalesGroup',
+            details='Group of salesmen',
+        )
+
+        grp.authorizations=[
+                djangoDbMgr.get('','Authorization', 6),
+                djangoDbMgr.get('','Authorization', 7)
+            ]
+        savedGrp = djangoDbMgr.save('','Group', grp)
+
+        print('savedGrp descriotion is: ' + savedGrp.description)
+
+        self.assertIsNotNone(savedGrp)
+        self.assertEqual(savedGrp.description, grp.description)
+        self.assertGreater(savedGrp.id,0)
+
+    def test_get(self):
+        id=3
+        retrievedAuth = djangoDbMgr.get('','Group', id)
+
+        self.assertIsNotNone(retrievedAuth)
+        self.assertEqual(retrievedAuth.id,id)
+
+    def test_update(self):
+        grp = Group(
+            description='SalesGroup changed',
+            details='Group of salesmen changed',
+        )
+
+        grp.id = 5
+
+        updatedGrp = djangoDbMgr.save('','Group', grp)
+
+        self.assertIsNotNone(updatedGrp)
+        self.assertEqual(grp.id, updatedGrp.id)
+        self.assertEqual(grp.description, updatedGrp.description)
+
+
+    def test_getall(self):
+        grps = djangoDbMgr.get_all('','Group')
+        print('Number of items is: ', len(grps))
+
+        for grp in grps:
+            print ('grp is ', grp.id, grp.description)
+
+        self.assertGreater(len(grps), 1)
+
+    def test_delete(self):
+        items_pre = len(djangoDbMgr.get_all('','Group'))
+        print('No of items before deletion: ', items_pre)
+        
+        itemtodelete = djangoDbMgr.get('','Group', 8)
+        print('grp to delete is', itemtodelete.description)
+
+        deletedAuth = djangoDbMgr.delete('', 'Group', itemtodelete)
+
+        items_post = len(djangoDbMgr.get_all('','Group'))
+        print('No of items after deletion: ', items_post)
+
+        self.assertIsNotNone(deletedAuth)
+        self.assertGreater(items_pre, items_post)
+
+class PersonDjangoDataBaseModelManagerTest(unittest.TestCase):
+    def test_create_new_id(self):
+        newId = djangoDbMgr.create_new_id('','Person')
+
+        print(newId)
+
+        self.assertIsNotNone(newId)
+
+    def test_create(self):
+        person = Person(
+            firstname='John',
+            lastname='Nash',
+            middlename='Jones',
+        )
+
+        savedPerson = djangoDbMgr.save('','Person', person)
+
+        print('savedPerson firstname is: ' + savedPerson.firstname)
+
+        self.assertIsNotNone(savedPerson)
+        self.assertEqual(savedPerson.firstname, person.firstname)
+        self.assertGreater(savedPerson.id,0)
+
+    def test_get(self):
+        id=1
+        retrievedItem = djangoDbMgr.get('','Person', id)
+
+        self.assertIsNotNone(retrievedItem)
+        self.assertEqual(retrievedItem.id,id)
+
+    def test_update(self):
+        item = Person(
+            firstname='John',
+            lastname='Nash',
+            middlename='Junior',
+        )
+
+        item.id = 1
+
+        updatedItem = djangoDbMgr.save('','Person', item)
+
+        self.assertIsNotNone(updatedItem)
+        self.assertEqual(item.id, updatedItem.id)
+        self.assertEqual(item.middlename, updatedItem.middlename)
+
+
+    def test_getall(self):
+        items = djangoDbMgr.get_all('','Person')
+        print('Number of items is: ', len(items))
+
+        for item in items:
+            print ('grp is ', item.id, item.firstname, item.lastname)
+
+        self.assertGreater(len(items), 0)
+
+    def test_delete(self):
+        items_pre = len(djangoDbMgr.get_all('','Person'))
+        print('No of items before deletion: ', items_pre)
+        
+        itemtodelete = djangoDbMgr.get('','Person', 1)
+        # print('grp to delete is', itemtodelete.firstname)
+
+        deletedAuth = djangoDbMgr.delete('', 'Person', itemtodelete)
+
+        items_post = len(djangoDbMgr.get_all('','Person'))
+        print('No of items after deletion: ', items_post)
+
+        self.assertIsNotNone(deletedAuth)
+        self.assertGreater(items_pre, items_post)
+
+class CustomerDjangoDataBaseModelManagerTest(unittest.TestCase):
+    def test_create_new_id(self):
+        newId = djangoDbMgr.create_new_id('','Customer')
+
+        print(newId)
+
+        self.assertIsNotNone(newId)
+
+    def test_create(self):
+        customer = Customer(
+            name = 'Customer 1',
+            email = 'customer1@email.com', 
+            phonenumber = '080200000000', 
+            address = '1 Customer Road', 
+            date = datetime.date.today(), 
+        )
+
+        customer.contact_persons = [djangoDbMgr.get('','Person', 2), djangoDbMgr.get('','Person', 3)]
+
+        savedCustomer = djangoDbMgr.save('','Customer', customer)
+
+        print('savedCustomer firstname is: ' + savedCustomer.name)
+
+        self.assertIsNotNone(savedCustomer)
+        self.assertEqual(savedCustomer.name, customer.name)
+        self.assertGreater(savedCustomer.id,0)
+
+    def test_get(self):
+        id=1
+        retrievedItem = djangoDbMgr.get('','Customer', id)
+
+        self.assertIsNotNone(retrievedItem)
+        self.assertEqual(retrievedItem.id,id)
+
+    def test_update(self):
+        item = Customer(
+            name = 'Customer 1 changed',
+            email = 'customer1@email.com', 
+            phonenumber = '080200000000', 
+            address = '1 Customer Road', 
+            date = datetime.date.today(), 
+        )
+
+        item.id = 1
+
+        updatedItem = djangoDbMgr.save('','Customer', item)
+
+        self.assertIsNotNone(updatedItem)
+        self.assertEqual(item.id, updatedItem.id)
+        self.assertEqual(item.name, updatedItem.name)
+
+
+    def test_getall(self):
+        items = djangoDbMgr.get_all('','Customer')
+        print('Number of items is: ', len(items))
+
+        for item in items:
+            print ('item is ', item.id, item.get_name(), item.get_address())
+
+        self.assertGreater(len(items), 1)
+
+    def test_delete(self):
+        items_pre = len(djangoDbMgr.get_all('','Customer'))
+        print('No of items before deletion: ', items_pre)
+        
+        itemtodelete = djangoDbMgr.get('','Customer', 1)
+        # print('grp to delete is', itemtodelete.firstname)
+
+        deletedAuth = djangoDbMgr.delete('', 'Customer', itemtodelete)
+
+        items_post = len(djangoDbMgr.get_all('','Customer'))
+        print('No of items after deletion: ', items_post)
+
+        self.assertIsNotNone(deletedAuth)
+        self.assertGreater(items_pre, items_post)
+
+class UnitDjangoDataBaseModelManagerTest(unittest.TestCase):
+    def test_create_new_id(self):
+        newId = djangoDbMgr.create_new_id('','Unit')
+
+        print(newId)
+
+        self.assertIsNotNone(newId)
+
+    def test_create(self):
+        unit = Unit(
+            shortDesc = 'm',
+            longDesc = 'meter', 
+            active = True,
+        )
+
+        savedUnit = djangoDbMgr.save('','Unit', unit)
+
+        print('savedUnit shortDesc is: ' + savedUnit.shortDesc)
+
+        self.assertIsNotNone(savedUnit)
+        self.assertEqual(savedUnit.shortDesc, unit.shortDesc)
+        self.assertGreater(savedUnit.id,0)
+
+    def test_get(self):
+        id=2
+        retrievedItem = djangoDbMgr.get('','Unit', id)
+
+        self.assertIsNotNone(retrievedItem)
+        self.assertEqual(retrievedItem.id,id)
+
+    def test_update(self):
+        item = Unit(
+            shortDesc = 'm',
+            longDesc = 'metre', 
+            active = True,
+        )
+
+        item.id = 2
+
+        updatedItem = djangoDbMgr.save('','Unit', item)
+
+        self.assertIsNotNone(updatedItem)
+        self.assertEqual(item.id, updatedItem.id)
+        self.assertEqual(item.shortDesc, updatedItem.shortDesc)
+
+
+    def test_getall(self):
+        items = djangoDbMgr.get_all('','Unit')
+        print('Number of items is: ', len(items))
+
+        for item in items:
+            print ('item is ', item.id, item.shortDesc, item.longDesc)
+
+        self.assertGreater(len(items), 1)
+
+    def test_delete(self):
+        items_pre = len(djangoDbMgr.get_all('','Unit'))
+        print('No of items before deletion: ', items_pre)
+        
+        itemtodelete = djangoDbMgr.get('','Unit', 2)
+        # print('grp to delete is', itemtodelete.firstname)
+
+        deletedAuth = djangoDbMgr.delete('', 'Unit', itemtodelete)
+
+        items_post = len(djangoDbMgr.get_all('','Unit'))
+        print('No of items after deletion: ', items_post)
+
+        self.assertIsNotNone(deletedAuth)
+        self.assertGreater(items_pre, items_post)
+
+class PriceDjangoDataBaseModelManagerTest(unittest.TestCase):
+    def test_create_new_id(self):
+        newId = djangoDbMgr.create_new_id('','Price')
+
+        print(newId)
+
+        self.assertIsNotNone(newId)
+
+    def test_create(self):
+        price = Price(
+            fromDate = datetime.date.today(),
+            toDate = None, 
+            amount = 300, 
+            currency = 'NGN',
+            active = False,
+        )
+
+        price.product = None
+
+        savedPrice = djangoDbMgr.save('','Price', price)
+
+        print('savedPrice shortDesc is: ', savedPrice.fromDate)
+
+        self.assertIsNotNone(savedPrice)
+        self.assertEqual(savedPrice.fromDate, price.fromDate)
+        self.assertGreater(savedPrice.id,0)
+
+    def test_get(self):
+        id=4
+        retrievedItem = djangoDbMgr.get('','Price', id)
+
+        self.assertIsNotNone(retrievedItem)
+        self.assertEqual(retrievedItem.id,id)
+
+    def test_update(self):
+        item = Price(
+            fromDate = datetime.date.today(),
+            toDate = datetime.date(datetime.date.today().year, 
+                datetime.date.today().month,
+                datetime.date.today().day+7), 
+            amount = 300, 
+            currency = 'NGN',
+            active = True,
+        )
+
+        item.product = None
+
+        item.id = 5
+
+        updatedItem = djangoDbMgr.save('','Price', item)
+
+        self.assertIsNotNone(updatedItem)
+        self.assertEqual(item.id, updatedItem.id)
+        self.assertEqual(item.toDate, updatedItem.toDate)
+
+
+    def test_getall(self):
+        items = djangoDbMgr.get_all('','Price')
+        print('Number of items is: ', len(items))
+
+        for item in items:
+            print ('item is ', item.id, item.fromDate, item.currency)
+
+        self.assertGreater(len(items), 1)
+
+    def test_delete(self):
+        items_pre = len(djangoDbMgr.get_all('','Price'))
+        print('No of items before deletion: ', items_pre)
+        
+        itemtodelete = djangoDbMgr.get('','Price', 2)
+        # print('grp to delete is', itemtodelete.firstname)
+
+        deletedAuth = djangoDbMgr.delete('', 'Price', itemtodelete)
+
+        items_post = len(djangoDbMgr.get_all('','Price'))
+        print('No of items after deletion: ', items_post)
+
+        self.assertIsNotNone(deletedAuth)
+        self.assertGreater(items_pre, items_post)
+
+class UserDjangoDataBaseModelManagerTest(unittest.TestCase):
+    def test_create_new_id(self):
+        newId = djangoDbMgr.create_new_id('','User')
+
+        print(newId)
+
+        self.assertIsNotNone(newId)
+
+    def test_create(self):
+
+
+        user = User(
+            firstname = 'Jane',
+            lastname = 'Doe', 
+            username = 'jane', 
+            password = 'allow',
+            email = 'jane@email.com',
+            phonenumber = '08020000000', 
+        )
+
+        user.authorizations = djangoDbMgr.get_all('','Authorization')
+        user.groups = djangoDbMgr.get_all('','Group')
+
+        savedUser = djangoDbMgr.save('','User', user)
+
+        print('savedUser shortDesc is: ', savedUser.get_firstname())
+
+        self.assertIsNotNone(savedUser)
+        self.assertEqual(savedUser.get_firstname(), user.get_firstname())
+        self.assertGreater(savedUser.id,0)
+
+    def test_get(self):
+        id=4
+        retrievedItem = djangoDbMgr.get('','User', id)
+
+        self.assertIsNotNone(retrievedItem)
+        self.assertEqual(retrievedItem.id,id)
+
+    def test_update(self):
+        item = User(
+            firstname = 'Jane',
+            lastname = 'Dowen', 
+            username = 'jane_dowen', 
+            password = 'allow',
+            email = 'jane@email.com',
+            phonenumber = '08020000000', 
+        )
+
+        item.authorizations = djangoDbMgr.get_all('','Authorization')
+        item.groups = djangoDbMgr.get_all('','Group')
+        item.activate()
+
+        item.id = 5
+
+        updatedItem = djangoDbMgr.save('','User', item)
+
+        self.assertIsNotNone(updatedItem)
+        self.assertEqual(item.id, updatedItem.id)
+        self.assertEqual(item.get_lastname(), updatedItem.get_lastname())
+        self.assertTrue(item.get_active())
+
+
+    def test_getall(self):
+        items = djangoDbMgr.get_all('','User')
+        print('Number of items is: ', len(items))
+
+        for item in items:
+            print ('item is ', item.id, item.get_firstname(), item.get_lastname(), item.authorizations)
+
+        self.assertGreater(len(items), 1)
+
+    def test_delete(self):
+        items_pre = len(djangoDbMgr.get_all('','User'))
+        print('No of items before deletion: ', items_pre)
+        
+        itemtodelete = djangoDbMgr.get('','User', 2)
+        # print('grp to delete is', itemtodelete.firstname)
+
+        deletedAuth = djangoDbMgr.delete('', 'User', itemtodelete)
+
+        items_post = len(djangoDbMgr.get_all('','User'))
+        print('No of items after deletion: ', items_post)
+
+        self.assertIsNotNone(deletedAuth)
+        self.assertGreater(items_pre, items_post)
+
+class ProductDjangoDataBaseModelManagerTest(unittest.TestCase):
+    def test_create_new_id(self):
+        newId = djangoDbMgr.create_new_id('','Product')
+
+        print(newId)
+
+        self.assertIsNotNone(newId)
+
+    def test_create(self):
+
+
+        product = Product(
+            name = '900g Sliced Bread',
+            price = 600,
+            prices = djangoDbMgr.get_all('','Price'),
+            date = datetime.date.today(),
+        )
+
+        product.group = "Sliced Bread"
+        product.units = djangoDbMgr.get_all('','Unit')
+
+        savedProduct = djangoDbMgr.save('','Product', product)
+
+        print('savedProduct name is: ', savedProduct.name)
+
+        self.assertIsNotNone(savedProduct)
+        self.assertEqual(savedProduct.name, product.name)
+        self.assertGreater(savedProduct.id,0)
+
+    def test_get(self):
+        id=4
+        retrievedItem = djangoDbMgr.get('','Product', id)
+
+        self.assertIsNotNone(retrievedItem)
+        self.assertEqual(retrievedItem.id,id)
+
+    def test_update(self):
+        item = Product(
+            name = '1000g Sliced Bread',
+            price = 900,
+            prices = djangoDbMgr.get_all('','Price'),
+            date = datetime.date.today(),
+        )
+
+        item.group = "Sliced Bread"
+        item.units = djangoDbMgr.get_all('','Unit')
+
+        item.id = 1
+
+        updatedItem = djangoDbMgr.save('','Product', item)
+
+        self.assertIsNotNone(updatedItem)
+        self.assertEqual(item.id, updatedItem.id)
+        self.assertEqual(item.name, updatedItem.name)
+
+
+    def test_getall(self):
+        items = djangoDbMgr.get_all('','Product')
+        print('Number of items is: ', len(items))
+
+        for item in items:
+            print ('item is ', item.id, item.name, item.name)
+
+        self.assertGreater(len(items), 1)
+
+    def test_delete(self):
+        items_pre = len(djangoDbMgr.get_all('','Product'))
+        print('No of items before deletion: ', items_pre)
+        
+        itemtodelete = djangoDbMgr.get('','Product', 2)
+        # print('grp to delete is', itemtodelete.firstname)
+
+        deletedAuth = djangoDbMgr.delete('', 'Product', itemtodelete)
+
+        items_post = len(djangoDbMgr.get_all('','Product'))
+        print('No of items after deletion: ', items_post)
+
+        self.assertIsNotNone(deletedAuth)
+        self.assertGreater(items_pre, items_post)
+
+class SaleDjangoDataBaseModelManagerTest(unittest.TestCase):
+    def test_create_new_id(self):
+        newId = djangoDbMgr.create_new_id('','Sale')
+
+        print(newId)
+
+        self.assertIsNotNone(newId)
+
+    def test_create(self):
+
+        sale = Sale(
+            product = djangoDbMgr.get('','Product', 6),
+            quantity = 20,
+            price = 500,
+            currency = 'NGN',
+            date = datetime.date.today(),
+            customer = djangoDbMgr.get('','Customer', 6),
+            creator = djangoDbMgr.get('','User', 6),   
+        )
+
+        savedSale = djangoDbMgr.save('','Sale', sale)
+
+        print('savedSale product is: ', savedSale.product)
+
+        self.assertIsNotNone(savedSale)
+        self.assertEqual(savedSale.product.name, sale.product.name)
+        self.assertGreater(savedSale.id,0)
+
+    def test_get(self):
+        id=4
+        retrievedItem = djangoDbMgr.get('','Sale', id)
+
+        self.assertIsNotNone(retrievedItem)
+        self.assertEqual(retrievedItem.id,id)
+
+    def test_update(self):
+        item = Sale(
+            product = djangoDbMgr.get('','Product', 6),
+            quantity = 300,
+            price = 900,
+            currency = 'NGN',
+            date = datetime.date.today(),
+            customer = djangoDbMgr.get('','Customer', 6),
+            creator = djangoDbMgr.get('','User', 6),   
+        )
+
+        item.id = 3
+
+        updatedItem = djangoDbMgr.save('','Sale', item)
+
+        self.assertIsNotNone(updatedItem)
+        self.assertEqual(item.id, updatedItem.id)
+        self.assertEqual(item.product.name, updatedItem.product.name)
+
+
+    def test_getall(self):
+        items = djangoDbMgr.get_all('','Sale')
+        print('Number of items is: ', len(items))
+
+        for item in items:
+            print ('item is ', item.id, item.product.name if item.product != None else None )
+
+        self.assertGreater(len(items), 1)
+
+    def test_delete(self):
+        items_pre = len(djangoDbMgr.get_all('','Sale'))
+        print('No of items before deletion: ', items_pre)
+        
+        itemtodelete = djangoDbMgr.get('','Sale', 2)
+        # print('grp to delete is', itemtodelete.firstname)
+
+        deletedAuth = djangoDbMgr.delete('', 'Sale', itemtodelete)
+
+        items_post = len(djangoDbMgr.get_all('','Sale'))
+        print('No of items after deletion: ', items_post)
+
+        self.assertIsNotNone(deletedAuth)
+        self.assertGreater(items_pre, items_post)
+
+class ProductionBatchDjangoDataBaseModelManagerTest(unittest.TestCase):
+    def test_create_new_id(self):
+        newId = djangoDbMgr.create_new_id('','ProductionBatch')
+
+        print(newId)
+
+        self.assertIsNotNone(newId)
+
+    def test_create(self):
+
+        productionBatch = ProductionBatch(
+            productType='', 
+            flourQuantity=50, 
+            date=datetime.date.today(), 
+            startTime='', 
+            baker='Ramon',  
+        )
+
+        productionBatch.endTime = ''
+        productionBatch.supervisor = ''
+        productionBatch.assistants = 'James, John'
+        productionBatch.problems = 'No flour, No water'
+
+        productionBatch.products = djangoDbMgr.get_all('', 'Product')
+
+        savedProductionBatch = djangoDbMgr.save('','ProductionBatch', productionBatch)
+
+        print('savedProductionBatch flourQuantity is: ', savedProductionBatch.flourQuantity)
+
+        self.assertIsNotNone(savedProductionBatch)
+        self.assertEqual(savedProductionBatch.flourQuantity, productionBatch.flourQuantity)
+        self.assertGreater(savedProductionBatch.id,0)
+
+    def test_get(self):
+        id=4
+        retrievedItem = djangoDbMgr.get('','ProductionBatch', id)
+
+        self.assertIsNotNone(retrievedItem)
+        self.assertEqual(retrievedItem.id,id)
+
+    def test_update(self):
+        item = ProductionBatch(
+             productType='', 
+            flourQuantity=50, 
+            date=datetime.date.today(), 
+            startTime=datetime.datetime.now(), 
+            baker='Ramonilahi', 
+        )
+
+        item.endTime = datetime.datetime.now()
+        item.supervisor = ''
+        item.assistants = 'James, John'
+        item.problems = 'No flour, No water'
+
+        item.products = djangoDbMgr.get_all('', 'Product')
+
+        item.id = 3
+
+        updatedItem = djangoDbMgr.save('','ProductionBatch', item)
+
+        self.assertIsNotNone(updatedItem)
+        self.assertEqual(item.id, updatedItem.id)
+        self.assertEqual(item.baker, updatedItem.baker)
+
+
+    def test_getall(self):
+        items = djangoDbMgr.get_all('','ProductionBatch')
+        print('Number of items is: ', len(items))
+
+        for item in items:
+            print ('item is ', item.id, item.flourQuantity )
+
+        self.assertGreater(len(items), 1)
+
+    def test_delete(self):
+        items_pre = len(djangoDbMgr.get_all('','ProductionBatch'))
+        print('No of items before deletion: ', items_pre)
+        
+        itemtodelete = djangoDbMgr.get('','ProductionBatch', 2)
+        # print('grp to delete is', itemtodelete.firstname)
+
+        deletedAuth = djangoDbMgr.delete('', 'ProductionBatch', itemtodelete)
+
+        items_post = len(djangoDbMgr.get_all('','ProductionBatch'))
+        print('No of items after deletion: ', items_post)
+
+        self.assertIsNotNone(deletedAuth)
+        self.assertGreater(items_pre, items_post)
+

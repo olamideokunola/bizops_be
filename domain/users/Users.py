@@ -79,7 +79,7 @@ class User(AuthorizationParent, GroupParent):
     id=None
     authorizations = {}
     groups = {}
-    __active = False
+    _active = False
 
     def __init__(self, firstname, lastname, username=None, password=None, email=None, phonenumber=None):
         self.person = Person(firstname=firstname,lastname=lastname)
@@ -111,13 +111,13 @@ class User(AuthorizationParent, GroupParent):
         return self.person.get_email()
 
     def get_active(self):
-        return self.__active
+        return self._active
 
     def activate(self):
-        self.__active = True
+        self._active = True
 
     def deactivate(self):
-        self.__active = False
+        self._active = False
 
     #id = property(fget=get_username, fset=set_username)
 
@@ -125,12 +125,12 @@ class Group(AuthorizationParent):
     id=None
     description=''
     details=''
-    authorizations = {}
+    authorizations = []
     
     def __init__(self, description, details):
         self.description = description
         self.details = details
-        self.authorizations = {}
+        self.authorizations = []
 
 
 class Authorization:

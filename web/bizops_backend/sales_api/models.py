@@ -8,6 +8,7 @@ class Price(models.Model):
     amount = models.FloatField(default=0)
     currency =  models.CharField(default='NGN', max_length=3, null=True)
     product = models.ForeignKey('Product', on_delete = models.CASCADE, related_name='product_prices', null=True)
+    active = models.BooleanField(default=False)
 
     def __str__(self):
         return self.currency + str(self.amount)
@@ -18,8 +19,8 @@ class Sale(models.Model):
     price =  models.DecimalField(max_digits=12, decimal_places=2, null=True)
     currency =  models.CharField(default='NGN', max_length=3, null=True)
     date =  models.DateField(auto_now=True)
-    customer =  models.CharField(max_length=30, null=True)
-    creator =  models.CharField(max_length=30, null=True)
+    customer = models.ForeignKey('Customer', on_delete=models.CASCADE, null=True)
+    creator =  models.ForeignKey('User', on_delete=models.CASCADE, null=True)
     lastSaleTime =  models.TimeField(auto_now=True)
 
     def __str__(self):
@@ -28,7 +29,7 @@ class Sale(models.Model):
 class Unit(models.Model):
     shortDesc = models.CharField(max_length=6, null=True)
     longDesc = models.CharField(max_length=50, null=True)
-    active = models.BooleanField()
+    active = models.BooleanField(default=False)
 
 class Product(models.Model):
     name = models.CharField(max_length=50, null=True)
@@ -65,10 +66,10 @@ class User(models.Model):
     )
     email = models.EmailField(max_length=50, null=True)
     phonenumber = models.CharField(max_length=50, null=True)
-    isAuthenticated = models.BooleanField()
+    isAuthenticated = models.BooleanField(default=False)
     authorizations = models.ManyToManyField("Authorization")
     groups = models.ManyToManyField("Group")
-    active = models.BooleanField()
+    active = models.BooleanField(default=False)
 
 class Person(models.Model):
     firstname = models.CharField(max_length=50, null=True)
@@ -81,7 +82,7 @@ class Customer(models.Model):
     phonenumber = models.CharField(max_length=50, null=True)
     address = models.CharField(max_length=120, null=True)
     date = models.DateField(null=True)
-    contactpersons = models.ForeignKey('Person', on_delete = models.CASCADE, null=True)
+    contact_persons = models.ForeignKey('Person', on_delete = models.CASCADE, null=True)
 
 class ProductionBatch(models.Model):
     productType = models.CharField(max_length=50, null=True)
