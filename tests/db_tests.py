@@ -1220,6 +1220,25 @@ class SaleDjangoDataBaseModelManagerTest(unittest.TestCase):
         self.assertIsNotNone(retrievedItem)
         self.assertEqual(retrievedItem.id,id)
 
+    def test_getdayitems(self):
+        date = datetime.date(2020,6,datetime.date.today().day-1)
+        items = djangoDbMgr.get_day_items('','Sale', date)
+
+        print('Number of items is: ', len(items))
+
+        for item in items:
+            print ('item is ', item.id, item.product.name if item.product != None else None )
+
+        self.assertGreater(len(items), 1)
+
+    def test_getdayitem(self):
+        date = datetime.date(2020,6,datetime.date.today().day-1)
+        item = djangoDbMgr.get_day_item('','Sale', date, 12)
+
+        print ('item is ', item.id, item.product.name if item.product != None else None )
+
+        self.assertEqual(item.id, 12)
+
     def test_update(self):
         item = Sale(
             product = djangoDbMgr.get('','Product', 6),
@@ -1331,6 +1350,16 @@ class ProductionBatchDjangoDataBaseModelManagerTest(unittest.TestCase):
 
     def test_getall(self):
         items = djangoDbMgr.get_all('','ProductionBatch')
+        print('Number of items is: ', len(items))
+
+        for item in items:
+            print ('item is ', item.id, item.flourQuantity )
+
+        self.assertGreater(len(items), 1)
+    
+    def test_getmany(self):
+        ids = [1,3,4]
+        items = djangoDbMgr.get_many('','ProductionBatch',ids)
         print('Number of items is: ', len(items))
 
         for item in items:

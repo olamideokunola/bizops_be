@@ -94,6 +94,10 @@ class ModelManager(AbstractModelManager):
             # print('Items more than 0')
             return [self.materialize(item) for item in self.ModelClass.objects.all() ] 
 
+    def get_ids(self):
+        print('In getids')
+        return [item.id for item in self.ModelClass.objects.all()]
+
 class AuthorizationModelManager(ModelManager, Materializer):
     ModelClass = Authorization
 
@@ -678,7 +682,6 @@ class ProductionBatchModelManager(ModelManager, Materializer):
 
         return productionBatchEntity
 
-
 class DjangoDataBaseManager(DatabaseManagerInterface):
     saleModelManager = SaleModelManager()
     authorizationModelManager = AuthorizationModelManager()
@@ -730,21 +733,50 @@ class DjangoDataBaseManager(DatabaseManagerInterface):
         return model.get(id)
 
     def get_many(self, databasename, modelname, ids):
-        return None
+        model = self.models[modelname]
+        items = []  
+
+        try:
+            for id in ids:
+                items.append(self.get(databasename, modelname, id))
+        except AttributeError:
+            return None
+        else:
+            return items
 
     def get_day_items(self, databasename, modelname, date):
-        return None
+        model = self.models[modelname]
+        items = []
+
+        ids = model.get_ids()
+
+        for id in ids:
+            if model.get(id).date == date:
+                items.append(model.get(id))
+
+        return items
     
     def get_day_item(self, databasename, modelname, date, id):
-        return None
+        model = self.models[modelname]
+
+        ids = model.get_ids()
+
+        if id in ids:
+            item = model.get(id)
+            if item.date == date:
+                return item
+            else:
+                print('Item is not for date!')
+                return None
+        else:
+            print('Item not in database!')
+            return None
 
     def get_all(self, databasename, modelname):
         model = self.models[modelname]
         return model.get_all()
 
 
-
-        
 
 # class Database():
 #     name = ''productionBatchModel
