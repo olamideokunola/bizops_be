@@ -71,7 +71,7 @@ class AuthenticationController:
         self.authenticationService.delete_allusers()
 
     def updateuser(self, inputData):
-        print("In createuser of controller, username is: " + inputData["username"] )
+        print("In updateuser of controller, username is: " + inputData["username"] )
         
         self.authenticationInputData.id = inputData['id'] if inputData['id'] != None else None
 

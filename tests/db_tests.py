@@ -1,5 +1,5 @@
 import unittest
-import datetime
+import datetime 
 
 from domain.sales.Sales import Sale
 from domain.sales.SalesDataAccessInterface import SalesDataAccessInterface
@@ -400,7 +400,9 @@ class CustomersDataAccessTest(unittest.TestCase):
         self.setup_customers_data_access()
         self.save_customers()
 
-        self.assertEqual(1,self.customers_data_access.get(1).id)
+        customer = self.customers_data_access.get(12)
+
+        self.assertEqual(12,customer.id)
     
     def test_get_customer(self):
         self.setup_db()
@@ -610,7 +612,7 @@ class AuthorizationDjangoDataBaseModelManagerTest(unittest.TestCase):
             model='Sale',
             description='Sale Authorization changed',
             create=True,
-            change=True,
+            edit=True,
             view=True,
             delete=True,
         )
@@ -619,7 +621,7 @@ class AuthorizationDjangoDataBaseModelManagerTest(unittest.TestCase):
 
         self.assertIsNotNone(updatedAuth)
         self.assertTrue(updatedAuth.create)
-        self.assertTrue(updatedAuth.change)
+        self.assertTrue(updatedAuth.edit)
         self.assertTrue(updatedAuth.view)
         self.assertTrue(updatedAuth.delete)
         self.assertEqual(auth.id, updatedAuth.id)
@@ -821,8 +823,10 @@ class CustomerDjangoDataBaseModelManagerTest(unittest.TestCase):
         self.assertGreater(savedCustomer.id,0)
 
     def test_get(self):
-        id=1
+        id=12
         retrievedItem = djangoDbMgr.get('','Customer', id)
+
+        print('customer is', retrievedItem)
 
         self.assertIsNotNone(retrievedItem)
         self.assertEqual(retrievedItem.id,id)
@@ -1019,6 +1023,19 @@ class PriceDjangoDataBaseModelManagerTest(unittest.TestCase):
         self.assertIsNotNone(deletedAuth)
         self.assertGreater(items_pre, items_post)
 
+    def test_delete_all(self):
+        items_pre = len(djangoDbMgr.get_all('','Price'))
+        print('No of items before deletion: ', items_pre)
+        
+        for price in djangoDbMgr.get_all('','Price'):
+            djangoDbMgr.delete('', 'Price', price)
+
+        items_post = len(djangoDbMgr.get_all('','Price'))
+        print('No of items after deletion: ', items_post)
+
+        # self.assertIsNotNone(deletedAuth)
+        self.assertGreater(items_pre, items_post)
+
 class UserDjangoDataBaseModelManagerTest(unittest.TestCase):
     def test_create_new_id(self):
         newId = djangoDbMgr.create_new_id('','User')
@@ -1040,6 +1057,9 @@ class UserDjangoDataBaseModelManagerTest(unittest.TestCase):
         )
 
         user.authorizations = djangoDbMgr.get_all('','Authorization')
+        
+        print('auth type', type(user.authorizations[0]))
+        
         user.groups = djangoDbMgr.get_all('','Group')
 
         savedUser = djangoDbMgr.save('','User', user)
@@ -1051,7 +1071,7 @@ class UserDjangoDataBaseModelManagerTest(unittest.TestCase):
         self.assertGreater(savedUser.id,0)
 
     def test_get(self):
-        id=4
+        id=55
         retrievedItem = djangoDbMgr.get('','User', id)
 
         self.assertIsNotNone(retrievedItem)
@@ -1118,10 +1138,23 @@ class ProductDjangoDataBaseModelManagerTest(unittest.TestCase):
 
         product = Product(
             name = '900g Sliced Bread',
-            price = 600,
-            prices = djangoDbMgr.get_all('','Price'),
+            
+            price = Price(
+                fromDate=datetime.date.today(),
+                toDate = None,
+                amount = 600,
+                currency = 'NGN',
+                active = False,
+            ),
+            prices = [
+                djangoDbMgr.get('','Price',115),
+                djangoDbMgr.get('','Price',116)
+            ],
             date = datetime.date.today(),
         )
+
+        print('prices', product.prices)
+        print('type of prices', type(product.prices))
 
         product.group = "Sliced Bread"
         product.units = djangoDbMgr.get_all('','Unit')
@@ -1144,7 +1177,11 @@ class ProductDjangoDataBaseModelManagerTest(unittest.TestCase):
     def test_update(self):
         item = Product(
             name = '1000g Sliced Bread',
-            price = 900,
+            price = Price(
+                fromDate = datetime.date.today(),
+                active=True,
+                amount = 900
+            ),
             prices = djangoDbMgr.get_all('','Price'),
             date = datetime.date.today(),
         )
@@ -1152,7 +1189,7 @@ class ProductDjangoDataBaseModelManagerTest(unittest.TestCase):
         item.group = "Sliced Bread"
         item.units = djangoDbMgr.get_all('','Unit')
 
-        item.id = 1
+        item.id = 32
 
         updatedItem = djangoDbMgr.save('','Product', item)
 
@@ -1168,7 +1205,7 @@ class ProductDjangoDataBaseModelManagerTest(unittest.TestCase):
         for item in items:
             print ('item is ', item.id, item.name, item.name)
 
-        self.assertGreater(len(items), 1)
+        self.assertGreater(len(items), 0)
 
     def test_delete(self):
         items_pre = len(djangoDbMgr.get_all('','Product'))
@@ -1184,6 +1221,19 @@ class ProductDjangoDataBaseModelManagerTest(unittest.TestCase):
 
         self.assertIsNotNone(deletedAuth)
         self.assertGreater(items_pre, items_post)
+    
+    def test_delete_all(self):
+        items_pre = len(djangoDbMgr.get_all('','Product'))
+        print('No of items before deletion: ', items_pre)
+        
+        for product in djangoDbMgr.get_all('','Product'):
+            djangoDbMgr.delete('', 'Product', product)
+
+        items_post = len(djangoDbMgr.get_all('','Product'))
+        print('No of items after deletion: ', items_post)
+
+        # self.assertIsNotNone(deletedAuth)
+        self.assertGreater(items_pre, items_post)
 
 class SaleDjangoDataBaseModelManagerTest(unittest.TestCase):
     def test_create_new_id(self):
@@ -1196,13 +1246,13 @@ class SaleDjangoDataBaseModelManagerTest(unittest.TestCase):
     def test_create(self):
 
         sale = Sale(
-            product = djangoDbMgr.get('','Product', 6),
+            product = djangoDbMgr.get('','Product', 88),
             quantity = 20,
-            price = 500,
+            price = Price(fromDate='2020-06-25', amount=500, active=True),
             currency = 'NGN',
             date = datetime.date.today(),
-            customer = djangoDbMgr.get('','Customer', 6),
-            creator = djangoDbMgr.get('','User', 6),   
+            customer = djangoDbMgr.get('','Customer', 12),
+            creator = djangoDbMgr.get('','User', 55),   
         )
 
         savedSale = djangoDbMgr.save('','Sale', sale)
@@ -1221,7 +1271,7 @@ class SaleDjangoDataBaseModelManagerTest(unittest.TestCase):
         self.assertEqual(retrievedItem.id,id)
 
     def test_getdayitems(self):
-        date = datetime.date(2020,6,datetime.date.today().day-1)
+        date = datetime.date(2020,6,datetime.date.today().day)
         items = djangoDbMgr.get_day_items('','Sale', date)
 
         print('Number of items is: ', len(items))
@@ -1282,6 +1332,19 @@ class SaleDjangoDataBaseModelManagerTest(unittest.TestCase):
 
         self.assertIsNotNone(deletedAuth)
         self.assertGreater(items_pre, items_post)
+    
+    def test_delete_all(self):
+        items_pre = len(djangoDbMgr.get_all('','Sale'))
+        print('No of items before deletion: ', items_pre)
+        
+        for sale in djangoDbMgr.get_all('','Sale'):
+            djangoDbMgr.delete('', 'Sale', sale)
+
+        items_post = len(djangoDbMgr.get_all('','Sale'))
+        print('No of items after deletion: ', items_post)
+
+        # self.assertIsNotNone(deletedAuth)
+        self.assertGreater(items_pre, items_post)
 
 class ProductionBatchDjangoDataBaseModelManagerTest(unittest.TestCase):
     def test_create_new_id(self):
@@ -1293,28 +1356,158 @@ class ProductionBatchDjangoDataBaseModelManagerTest(unittest.TestCase):
 
     def test_create(self):
 
-        productionBatch = ProductionBatch(
-            productType='', 
-            flourQuantity=50, 
-            date=datetime.date.today(), 
-            startTime='', 
-            baker='Ramon',  
-        )
-
-        productionBatch.endTime = ''
-        productionBatch.supervisor = ''
-        productionBatch.assistants = 'James, John'
-        productionBatch.problems = 'No flour, No water'
-
-        productionBatch.products = djangoDbMgr.get_all('', 'Product')
+        productionBatch = {
+            'id': None,
+            'productType': "Bread",
+            "flourQuantity": 3,
+            "date": datetime.date(2020, 5, 28),
+            "startTime": datetime.time(8,0),
+            "endTime": datetime.time(9,0),
+            "products": [
+                {
+                    "name": "800g Loaf Bread",
+                    "price": 400,
+                    "goodQuantity": 16,
+                    "damagedQuantity": 0
+                },
+                {
+                    "name": "600g Loaf Bread",
+                    "price": 300,
+                    "goodQuantity": 100,
+                    "damagedQuantity": 0
+                }
+            ],                      
+            "baker": "Ramon",
+            "supervisor": "Bose",
+            "assistants": "Chidinma, Busayo",
+            "problems": "Insufficient butter, Intermittent stoppage of mixer"
+        }
 
         savedProductionBatch = djangoDbMgr.save('','ProductionBatch', productionBatch)
 
-        print('savedProductionBatch flourQuantity is: ', savedProductionBatch.flourQuantity)
+        print('savedProductionBatch is: ', savedProductionBatch)
 
         self.assertIsNotNone(savedProductionBatch)
-        self.assertEqual(savedProductionBatch.flourQuantity, productionBatch.flourQuantity)
-        self.assertGreater(savedProductionBatch.id,0)
+        self.assertEqual(savedProductionBatch['flourQuantity'], productionBatch['flourQuantity'])
+        self.assertEqual(len(savedProductionBatch['products']),2)
+        self.assertGreater(savedProductionBatch['id'],0)
+
+    def test_get(self):
+        id=27
+        retrievedItem = djangoDbMgr.get('','ProductionBatch', id)
+
+        self.assertIsNotNone(retrievedItem)
+        self.assertEqual(retrievedItem['id'],id)
+
+    def test_update(self):
+        item = {
+            'id': 29,
+            'productType': "Bread",
+            "flourQuantity": 3,
+            "date": datetime.date(2020, 5, 28),
+            "startTime": datetime.time(8,0),
+            "endTime": datetime.time(9,0),
+            "products": [
+                {
+                    "name": "800g Loaf Bread",
+                    "price": 400,
+                    "goodQuantity": 16,
+                    "damagedQuantity": 0
+                },
+                {
+                    "name": "600g Loaf Bread",
+                    "price": 300,
+                    "goodQuantity": 100,
+                    "damagedQuantity": 0
+                }
+            ],                      
+            "baker": "Ramonilahi",
+            "supervisor": "Bose",
+            "assistants": "Chidinma, Busayo",
+            "problems": "Insufficient butter, Intermittent stoppage of mixer"
+        }
+
+        updatedItem = djangoDbMgr.save('','ProductionBatch', item)
+
+        self.assertIsNotNone(updatedItem)
+        self.assertEqual(item['id'], updatedItem['id'])
+        self.assertEqual(item['baker'], updatedItem['baker'])
+
+
+    def test_getall(self):
+        items = djangoDbMgr.get_all('','ProductionBatch')
+        print('Number of items is: ', len(items))
+
+        for item in items:
+            print ('item is ', item['id'], item['productType'])
+
+        self.assertGreater(len(items), 1)
+    
+    def test_getmany(self):
+        ids = [28,29]
+        items = djangoDbMgr.get_many('','ProductionBatch',ids)
+        print('Number of items is: ', len(items))
+
+        for item in items:
+            print ('item is ', item['id'], item['flourQuantity'] )
+
+        self.assertGreater(len(items), 1)
+
+    def test_delete(self):
+        items_pre = len(djangoDbMgr.get_all('','ProductionBatch'))
+        print('No of items before deletion: ', items_pre)
+        
+        itemtodelete = djangoDbMgr.get('','ProductionBatch', 2)
+        # print('grp to delete is', itemtodelete.firstname)
+
+        deletedAuth = djangoDbMgr.delete('', 'ProductionBatch', itemtodelete)
+
+        items_post = len(djangoDbMgr.get_all('','ProductionBatch'))
+        print('No of items after deletion: ', items_post)
+
+        self.assertIsNotNone(deletedAuth)
+        self.assertGreater(items_pre, items_post)
+
+    def test_delete_all(self):
+        # items_pre = len(djangoDbMgr.get_all('','ProductionBatch'))
+        # print('No of items before deletion: ', items_pre)
+        
+        items_deleted = djangoDbMgr.delete_all('', 'ProductionBatch')
+
+        print('No of items before deletion: ', items_deleted)
+
+        items_post = len(djangoDbMgr.get_all('','ProductionBatch'))
+        print('No of items after deletion: ', items_post)
+
+        # self.assertIsNotNone(deletedAuth)
+        self.assertEqual(0, items_post)
+
+class ProductionProductDjangoDataBaseModelManagerTest(unittest.TestCase):
+    def test_create_new_id(self):
+        newId = djangoDbMgr.create_new_id('','ProductionProduct')
+
+        print(newId)
+
+        self.assertIsNotNone(newId)
+
+    def test_create(self):
+
+        inputParams = {
+            'id': None, 
+            'productionBatchId': 13, 
+            'name': '800g Loaf Bread', 
+            'price': 400, 
+            'goodQuantity': 16,  
+            'damagedQuantity': 0
+        }
+
+        savedProductionProduct = djangoDbMgr.save('','ProductionProduct', inputParams)
+
+        print('productionBatch', savedProductionProduct)
+
+        self.assertIsNotNone(savedProductionProduct)
+        self.assertEqual(savedProductionProduct['productionBatchId'], inputParams['productionBatchId'])
+        self.assertGreater(savedProductionProduct['id'],0)
 
     def test_get(self):
         id=4
@@ -1325,7 +1518,7 @@ class ProductionBatchDjangoDataBaseModelManagerTest(unittest.TestCase):
 
     def test_update(self):
         item = ProductionBatch(
-             productType='', 
+            productType='', 
             flourQuantity=50, 
             date=datetime.date.today(), 
             startTime=datetime.datetime.now(), 
@@ -1353,7 +1546,7 @@ class ProductionBatchDjangoDataBaseModelManagerTest(unittest.TestCase):
         print('Number of items is: ', len(items))
 
         for item in items:
-            print ('item is ', item.id, item.flourQuantity )
+            print ('item is ', item['productType'], item['flourQuantity'] )
 
         self.assertGreater(len(items), 1)
     

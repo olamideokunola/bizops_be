@@ -11,7 +11,7 @@ class ManagerSaleServiceController:
             self.managerSaleService = managerSaleService
 
     def add_day_sale(self, productid, quantity, price, date, customerid, creator, authorizations, groups):
-        
+        print('In add day sale')
         self.managerSaleInputData.productid = productid
         self.managerSaleInputData.quantity = quantity
         self.managerSaleInputData.price = price
@@ -70,15 +70,15 @@ class ManagerSaleServiceController:
     def get_customers(self):
         self.managerSaleService.get_customers()
     
-    def get_products(self):
-        self.managerSaleService.get_products()
+    # def get_products(self):
+    #     self.managerSaleService.get_products()
 
-    def create_product(self, name, group, date, units):
-        self.managerSaleInputData.name = name
-        self.managerSaleInputData.group = group
-        self.managerSaleInputData.units = units
+    # def create_product(self, name, group, date, units):
+    #     self.managerSaleInputData.name = name
+    #     self.managerSaleInputData.group = group
+    #     self.managerSaleInputData.units = units
 
-        # date is expected as a dictionary
-        self.managerSaleInputData.date = datetime.date(date['year'], date['month'], date['day'])
+    #     # date is expected as a dictionary
+    #     self.managerSaleInputData.date = datetime.date(date['year'], date['month'], date['day'])
 
-        self.managerSaleService.create_product()
+    #     self.managerSaleService.create_product()

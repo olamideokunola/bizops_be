@@ -11,7 +11,7 @@ class Price(models.Model):
     active = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.currency + str(self.amount)
+        return str(self.currency) + str(self.amount)
 
 class Sale(models.Model):
     product = models.ForeignKey('Product', on_delete=models.CASCADE, null=True)
@@ -35,7 +35,7 @@ class Product(models.Model):
     name = models.CharField(max_length=50, null=True)
     group = models.CharField(max_length=50, null=True)
     title = models.CharField(max_length=50, null=True)
-    price = models.DecimalField(max_digits=12, decimal_places=2, null=True)
+    price = models.OneToOneField('Price', related_name='product_price', on_delete=models.CASCADE, null=True)
     date = models.DateField(null=True)
     units = models.ManyToManyField("Unit")
 
@@ -43,7 +43,7 @@ class Authorization(models.Model):
     description = models.CharField(max_length=50, null=True)
     model = models.CharField(max_length=50, null=True)
     can_create = models.BooleanField(default=False)
-    can_change = models.BooleanField(default=False)
+    can_edit = models.BooleanField(default=False)
     can_view = models.BooleanField(default=False)
     can_delete = models.BooleanField(default=False)
 
@@ -90,11 +90,16 @@ class ProductionBatch(models.Model):
     date = models.DateField(null=True)
     startTime = models.TimeField(auto_now=True)
     endTime = models.TimeField(null=True)
-    products = models.ManyToManyField('Product')
     baker = models.CharField(max_length=50, null=True)
     supervisor = models.CharField(max_length=50, null=True)
     assistants = models.CharField(max_length=200, null=True)
     problems = models.CharField(max_length=200, null=True)
+
+class ProductionProduct(models.Model):
+    productionBatch = models.ForeignKey('ProductionBatch', on_delete=models.CASCADE, null=True)
+    product = models.ForeignKey('Product', on_delete=models.CASCADE, null=True)
+    goodQuantity = models.DecimalField(max_digits=12, decimal_places=2, null=True)
+    damagedQuantity = models.DecimalField(max_digits=12, decimal_places=2, null=True)
 
 class ProductType(models.Model):
     name = models.CharField(max_length=50, null=True)

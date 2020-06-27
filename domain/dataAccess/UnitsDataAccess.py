@@ -20,6 +20,9 @@ class ShelveUnitsDataAccess(UnitsDataAccessInterface, DataAccessInterface):
 
     def get_unit(self, id):
         return self.get(id)
+    
+    def get_many(self, ids):
+        return self.database.get_many('salesdb', 'Unit', ids)
 
     def get_units(self):
         return self.database.get_all('salesdb', 'Unit')

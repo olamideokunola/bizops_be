@@ -8,6 +8,9 @@ from domain.dataAccess.UnitsDataAccess import ShelveUnitsDataAccess
 
 from domain.dataAccess.ShelveDatabase import ShelveDataBaseManager
 
+from domain.dataAccess.DjangoDataAccess.DjangoDatabase import DjangoDataBaseManager
+
+
 from domain.services.ManagerProductsServices import ManagerManageProductsService, ManagerProductInputData
 from domain.services.ManagerProductsPresenters import ManagerProductsPresenter, ManagerProductViewModel, ManagerProductOutputData
 
@@ -48,7 +51,12 @@ class UnitEntityTest(unittest.TestCase):
 class ManagerManageProductServiceTest(unittest.TestCase):
     product = Product()
     managerManageProductsService = None
-    databaseManager = ShelveDataBaseManager("domain/dataAccess/ShelveDatabase/")
+
+    # Shelve Database
+    # databaseManager = ShelveDataBaseManager("domain/dataAccess/ShelveDatabase/")
+
+    # Django DataAccess
+    databaseManager = DjangoDataBaseManager()
 
 
     productsDataAccess = ShelveProductsDataAccess(databaseManager)
@@ -82,7 +90,7 @@ class ManagerManageProductServiceTest(unittest.TestCase):
     def test_create_product(self):
         self.setup_service()
 
-        name="Test Product"
+        name="Test Product4"
         group="Test Group"
         self.create_product_input(name, group)
 
@@ -247,9 +255,10 @@ class ManagerManageProductServiceTest(unittest.TestCase):
 
        
         # create price
-        self.managerProductInputData.productid = self.managerProductOutputData.product.id
+        self.managerProductInputData.productid = 87
         self.managerProductInputData.amount = 300
-        self.managerProductInputData.pricedate =  datetime.date(2020,5,1)
+        self.managerProductInputData.active = False
+        self.managerProductInputData.pricedate =  str(datetime.date(2020,5,1))
 
         # add price
         self.managerManageProductsService.add_price()

@@ -19,6 +19,8 @@ class ShelveCustomersDataAccess(CustomersDataAccessInterface, DataAccessInterfac
         return self.database.get('salesdb', 'Customer', id)
 
     def get_customer(self, id):
+        print('id is', id)
+        print('customer is', self.get(id))
         return self.get(id)
 
     def get_customers(self):

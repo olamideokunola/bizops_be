@@ -29,7 +29,7 @@ class UserAuthenticationServiceTest(unittest.TestCase):
         self.viewModel = AuthenticationViewModel()
         self.presenter = AuthenticationPresenter(self.viewModel)
 
-        self.authenticateService = AuthenticationService(self.inputData, userDataInterface, self.presenter)
+        self.authenticateService = AuthenticationService(self.inputData,  self.outputData, userDataInterface, self.presenter)
         
     def test_user(self):
         self.setup_userdb()

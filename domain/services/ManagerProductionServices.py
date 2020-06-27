@@ -1,6 +1,6 @@
 
 from abc import ABC, abstractmethod
-from datetime import date
+from datetime import date, time
 from calendar import Calendar
 
 from domain.production.ProductionBatch import ProductionBatch
@@ -83,42 +83,65 @@ class ManagerManageProductionBatchService(ManagerProductionBatchInputInterface):
 
         self.managerProductionBatchOutputData = managerProductionBatchOutputData
 
+    @staticmethod
+    def _date_from_string(i_date):
+        print('date is', i_date)
+        date_str = i_date.split('-')
+        year = int(date_str[0])
+        month = int(date_str[1])
+        day = int(date_str[2])
+        print('date is', date(year,month,day))
+        return date(year,month,day)
+
+
     def __create_production_batch(self):
         # create empty productionbatch
-        self.productionbatch = ProductionBatch()        
+        # self.productionbatch = ProductionBatch()        
+
+        print('Product Type is: ') # + str(self.managerProductionBatchInputData['productType']))
 
         # set attributes
-        self.productionbatch.productType = self.managerProductionBatchInputData.productType
-        self.productionbatch.flourQuantity = self.managerProductionBatchInputData.flourQuantity
-        self.productionbatch.date = self.managerProductionBatchInputData.date
-        self.productionbatch.startTime = self.managerProductionBatchInputData.startTime
-        self.productionbatch.products = self.managerProductionBatchInputData.products
-        self.productionbatch.baker = self.managerProductionBatchInputData.baker
-        self.productionbatch.supervisor = self.managerProductionBatchInputData.supervisor
-        self.productionbatch.assistants = self.managerProductionBatchInputData.assistants
-        self.productionbatch.problems = self.managerProductionBatchInputData.problems
+        # self.productionbatch.productType = self.managerProductionBatchInputData.productType
+        # self.productionbatch.flourQuantity = self.managerProductionBatchInputData.flourQuantity
+        # self.productionbatch.date = self.managerProductionBatchInputData.date
+        # self.productionbatch.startTime = self.managerProductionBatchInputData.startTime
+        # self.productionbatch.products = self.managerProductionBatchInputData.products
+        # self.productionbatch.baker = self.managerProductionBatchInputData.baker
+        # self.productionbatch.supervisor = self.managerProductionBatchInputData.supervisor
+        # self.productionbatch.assistants = self.managerProductionBatchInputData.assistants
+        # self.productionbatch.problems = self.managerProductionBatchInputData.problems
 
-        print('Product Type is: ' + str(self.productionbatch.productType))
+        production_date = self._date_from_string(self.managerProductionBatchInputData.date)
+
+        self.productionbatch = {
+            'id': None,
+            'productType': self.managerProductionBatchInputData.productType,
+            "flourQuantity": self.managerProductionBatchInputData.flourQuantity,
+            "date": production_date,
+            "startTime": time(8,0),
+            "endTime": time(8,0),
+            "products": self.managerProductionBatchInputData.products,                      
+            "baker": self.managerProductionBatchInputData.baker,
+            "supervisor": self.managerProductionBatchInputData.supervisor,
+            "assistants": ','.join(self.managerProductionBatchInputData.assistants),
+            "problems": ','.join(self.managerProductionBatchInputData.problems)
+        }
+
+        print('Product Type is: ') # + str(self.productionbatch.productType))
 
         # save new productionbatch to database
         newproductionbatch = self.productionBatchDataAccess.save(self.productionbatch)
 
-        print('Product Type is: ' + str(newproductionbatch.productType))
-
         # if save is successful set output data (productionbatch and day productionbatchs) and format presenter view data
         if newproductionbatch != None:
-            print('newproductionbatch is not None: ' + str(newproductionbatch.productType))
             self.managerProductionBatchOutputData.feedback = {
                     'status': 'Success',
                     'message': 'DayProductionBatch created'
                 }
             self.managerProductionBatchOutputData.productionbatch = newproductionbatch
-            print('newproductionbatch is not None: ' + str(self.managerProductionBatchOutputData.productionbatch.productType))
-            self.managerProductionBatchOutputData.dayproductionbatches = self.productionBatchDataAccess.get_day_production_batches(self.productionbatch.date)
 
-            self.managerProductionBatchPresenter.set_production_batch(self.managerProductionBatchOutputData)
-            self.managerProductionBatchPresenter.set_day_production_batches(self.managerProductionBatchOutputData)
-            self.managerProductionBatchPresenter.set_feedback(self.managerProductionBatchOutputData)
+            self.__get_set_day_production_batches(production_date)
+
 
     def add_day_production_batch(self):
         # Check the current date and compare to the date entered
@@ -165,32 +188,66 @@ class ManagerManageProductionBatchService(ManagerProductionBatchInputInterface):
                 self.managerProductionBatchPresenter.set_feedback(self.managerProductionBatchOutputData)
     
     def __update_day_production_batch(self, productionbatch):
-        if self.managerProductionBatchInputData.productType != None: productionbatch.productType = self.managerProductionBatchInputData.productType 
-        if self.managerProductionBatchInputData.flourQuantity != None: productionbatch.flourQuantity = self.managerProductionBatchInputData.flourQuantity
-        if self.managerProductionBatchInputData.date != None: productionbatch.date = self.managerProductionBatchInputData.date
-        if self.managerProductionBatchInputData.startTime != None: productionbatch.startTime = self.managerProductionBatchInputData.startTime
-        if self.managerProductionBatchInputData.products != None: productionbatch.products = self.managerProductionBatchInputData.products
-        if self.managerProductionBatchInputData.baker != None: productionbatch.baker = self.managerProductionBatchInputData.baker
-        if self.managerProductionBatchInputData.supervisor != None: productionbatch.supervisor = self.managerProductionBatchInputData.supervisor
-        if self.managerProductionBatchInputData.assistants != None: productionbatch.assistants = self.managerProductionBatchInputData.assistants
-        if self.managerProductionBatchInputData.problems != None: productionbatch.problems = self.managerProductionBatchInputData.problems
+        # if self.managerProductionBatchInputData.productType != None: productionbatch.productType = self.managerProductionBatchInputData.productType 
+        # if self.managerProductionBatchInputData.flourQuantity != None: productionbatch.flourQuantity = self.managerProductionBatchInputData.flourQuantity
+        # if self.managerProductionBatchInputData.date != None: productionbatch.date = self.managerProductionBatchInputData.date
+        # if self.managerProductionBatchInputData.startTime != None: productionbatch.startTime = self.managerProductionBatchInputData.startTime
+        # if self.managerProductionBatchInputData.products != None: productionbatch.products = self.managerProductionBatchInputData.products
+        # if self.managerProductionBatchInputData.baker != None: productionbatch.baker = self.managerProductionBatchInputData.baker
+        # if self.managerProductionBatchInputData.supervisor != None: productionbatch.supervisor = self.managerProductionBatchInputData.supervisor
+        # if self.managerProductionBatchInputData.assistants != None: productionbatch.assistants = self.managerProductionBatchInputData.assistants
+        # if self.managerProductionBatchInputData.problems != None: productionbatch.problems = self.managerProductionBatchInputData.problems
 
-        savedproductionbatch = self.productionBatchDataAccess.save(productionbatch)
+        production_date = self._date_from_string(self.managerProductionBatchInputData.date)
+
+        print('Production date is', production_date)
+
+        self.productionbatch = {
+            'id': productionbatch['id'],
+            'productType': self.managerProductionBatchInputData.productType,
+            "flourQuantity": self.managerProductionBatchInputData.flourQuantity,
+            "date": production_date,
+            "startTime": time(8,0),
+            "endTime": time(8,0),
+            "products": self.managerProductionBatchInputData.products,                      
+            "baker": self.managerProductionBatchInputData.baker,
+            "supervisor": self.managerProductionBatchInputData.supervisor,
+            "assistants": ','.join(self.managerProductionBatchInputData.assistants),
+            "problems": ','.join(self.managerProductionBatchInputData.problems)
+        }
+
+        print('About to save', self.productionbatch)
+
+        savedproductionbatch = self.productionBatchDataAccess.save(self.productionbatch)
+
+        print('Saved', savedproductionbatch)
 
         self.managerProductionBatchOutputData.productionbatch = savedproductionbatch
-        self.managerProductionBatchPresenter.set_production_batch(self.managerProductionBatchOutputData)
-        
-        self.managerProductionBatchOutputData.dayproductionbatches = self.productionBatchDataAccess.get_day_production_batches(savedproductionbatch.date)
-        self.managerProductionBatchPresenter.set_day_production_batches(self.managerProductionBatchOutputData)
+        # self.managerProductionBatchPresenter.set_production_batch(self.managerProductionBatchOutputData)
+        self.__get_set_day_production_batches(production_date)
+        # print('About to get dayproductionbatches')
+        # self.managerProductionBatchOutputData.dayproductionbatches = self.productionBatchDataAccess.get_day_production_batches(production_date)
+        # print('About to set dayproductionbatches')
+        # self.managerProductionBatchPresenter.set_day_production_batches(self.managerProductionBatchOutputData)
 
+    def __get_set_day_production_batches(self,production_date):
+        self.managerProductionBatchOutputData.dayproductionbatches = self.productionBatchDataAccess.get_day_production_batches(production_date)
+
+        self.managerProductionBatchPresenter.set_production_batch(self.managerProductionBatchOutputData)
+        self.managerProductionBatchPresenter.set_day_production_batches(self.managerProductionBatchOutputData)
+        self.managerProductionBatchPresenter.set_feedback(self.managerProductionBatchOutputData)
 
     def update_day_production_batch(self):
         id = self.managerProductionBatchInputData.id
+        print('id', id)
         productionbatch = self.productionBatchDataAccess.get(id)
-        print("ProductionBatch id is: " + str(productionbatch.id))
-        print("ProductionBatch date is: " + str(productionbatch.date))
+        print('id', productionbatch)
+        # print("ProductionBatch id is: " + str(productionbatch.id))
+        # print("ProductionBatch date is: " + str(productionbatch.date))
 
-        inputDate =  str(productionbatch.date)
+        inputDate =  str(productionbatch['date'])
+
+        print('inputDate', inputDate)
 
         # Continue with update only if date is yesterday or today
         if date_is_yesterday_or_today(str(inputDate)):
@@ -200,7 +257,7 @@ class ManagerManageProductionBatchService(ManagerProductionBatchInputInterface):
         # Continue with update if user is Manager
         else:
             print('Date is not today or yesterday')
-
+            
             groups = self.managerProductionBatchInputData.groups
             print('number of groups is: ' + str(len(groups)))
 
@@ -235,5 +292,6 @@ class ManagerManageProductionBatchService(ManagerProductionBatchInputInterface):
         dayproductionbatches = self.productionBatchDataAccess.get_day_production_batches(date)
 
         self.managerProductionBatchOutputData.dayproductionbatches = dayproductionbatches 
+        print('dat production batches', dayproductionbatches)
         self.managerProductionBatchPresenter.set_day_production_batches(self.managerProductionBatchOutputData)
 

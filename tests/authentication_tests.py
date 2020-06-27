@@ -4,6 +4,9 @@ import datetime
 from domain.users.Users import User, Group, Authorization
 from domain.dataAccess.ShelveDatabase import ShelveDataBaseManager
 from domain.dataAccess.UsersDataAccess import ShelveUsersDataAccess
+from domain.dataAccess.GroupsDataAccess import ShelveGroupsDataAccess
+
+from domain.dataAccess.DjangoDataAccess.DjangoDatabase import DjangoDataBaseManager
 
 from domain.services.AuthenticationServices import UsersDataAccessInterface, AuthenticationInputData, AuthenticationInputInterface, AuthenticationOutputInterface, AuthenticationService
 from domain.services.AuthenticationPresenters import AuthenticationViewModel, AuthenticationOutputData, AuthenticationPresenter
@@ -16,8 +19,13 @@ class UserAuthenticationServiceTest(unittest.TestCase):
     newuser = None
 
     def setup_userdb(self):
-        db_manager = ShelveDataBaseManager(db_tests.dblocation)
+        # Shelve Data Access
+        # db_manager = ShelveDataBaseManager(db_tests.dblocation)
+
+        # Django Data Access
+        db_manager = DjangoDataBaseManager()
         self.userDataAccess = ShelveUsersDataAccess(db_manager)
+        self.groupDataAccess = ShelveGroupsDataAccess(db_manager)
 
         self.newuser = User('Joy', 'Okunola','joy', 'allow', 'joy@favychos.com')
 
@@ -29,24 +37,49 @@ class UserAuthenticationServiceTest(unittest.TestCase):
         self.viewModel = AuthenticationViewModel()
         self.presenter = AuthenticationPresenter(self.viewModel)
 
-        self.authenticateService = AuthenticationService(self.inputData, userDataInterface, self.presenter)
+        self.authenticateService = AuthenticationService(self.inputData, self.outputData, userDataInterface,self.groupDataAccess, self.presenter)
         
     def test_user(self):
         self.setup_userdb()
 
         self.assertEqual(self.newuser.username, 'joy')
-        self.assertEqual(self.newuser.id, 'joy')
+        # self.assertEqual(self.newuser.id, 'joy')
         self.assertEqual(self.newuser.get_firstname(), 'Joy')
         self.assertEqual(self.newuser.get_lastname(), 'Okunola')
         self.assertEqual(self.newuser.get_password(), 'allow')
 
+    def test_getuser(self):
+        self.setup_userdb()
+        self.setup_authentication()
+
+        self.inputData.username = self.newuser.username
+
+        self.authenticateService.getuser()
+
+        self.assertEqual(self.outputData.user.username, self.newuser.username)
+
+    def test_getusers(self):
+        self.setup_userdb()
+        self.setup_authentication()
+
+        self.authenticateService.getusers()
+
+        noOfUsers = len(self.outputData.users)
+
+        print('noOfUsers: ', noOfUsers)        
+
+        self.assertGreater(noOfUsers, 0)
+
     def test_get_username(self):
         self.setup_userdb()
+        self.setup_authentication()
         self.userDataAccess.save(self.newuser)
 
-        saveduser = self.userDataAccess.get(self.newuser.username)
+        self.inputData.username = self.newuser.username
 
-        self.assertEqual(self.newuser.username, saveduser.username)
+        self.authenticateService.getuser()
+
+        self.assertEqual(self.newuser.username, self.inputData.username)
         self.assertEqual(self.newuser.username, self.userDataAccess.get_username(self.newuser.username))
         self.assertEqual(self.newuser.get_password(), self.userDataAccess.get_password(self.newuser.username))
 
@@ -68,8 +101,10 @@ class UserAuthenticationControllerTest(unittest.TestCase):
     newuser = None
 
     def setup_userdb(self):
-        db_manager = ShelveDataBaseManager(db_tests.dblocation)
+        # db_manager = ShelveDataBaseManager(db_tests.dblocation)
+        db_manager = DjangoDataBaseManager()
         self.userDataAccess = ShelveUsersDataAccess(db_manager)
+        self.groupDataAccess = ShelveGroupsDataAccess(db_manager)
 
         self.newuser = User('Joy', 'Okunola','joy', 'allow', 'joy@favychos.com')
 
@@ -81,7 +116,7 @@ class UserAuthenticationControllerTest(unittest.TestCase):
         self.viewModel = AuthenticationViewModel()
         self.presenter = AuthenticationPresenter(self.viewModel)
 
-        self.authenticateService = AuthenticationService(self.inputData, userDataInterface, self.presenter)
+        self.authenticateService = AuthenticationService(self.inputData, self.outputData, userDataInterface, self.groupDataAccess, self.presenter)
 
         self.authenticateController = AuthenticationController(self.inputData, self.authenticateService)
         

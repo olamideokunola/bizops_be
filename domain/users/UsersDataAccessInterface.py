@@ -9,4 +9,8 @@ class UsersDataAccessInterface(ABC):
     @abstractmethod
     def get_password(self, id):
         pass
+    
+    @abstractmethod
+    def get_by_username(self, username):
+        pass
 

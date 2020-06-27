@@ -19,6 +19,8 @@ from domain.dataAccess.UsersDataAccess import ShelveUsersDataAccess
 from domain.dataAccess.GroupsDataAccess import ShelveGroupsDataAccess
 from domain.dataAccess.ProductionBatchDataAccess import ShelveProductionBatchDataAccess
 
+from domain.dataAccess.DjangoDataAccess.DjangoDatabase import DjangoDataBaseManager
+
 class MainController:
     # Service declaration 
     managerManageSalesService = None
@@ -26,8 +28,11 @@ class MainController:
     managerManageProductionBatchService = None
 
     # Shelve Database
-    dblocation = "../../domain/dataAccess/ShelveDatabase/"
-    databaseManager = ShelveDataBaseManager(dblocation)
+    # dblocation = "../../domain/dataAccess/ShelveDatabase/"
+    # databaseManager = ShelveDataBaseManager(dblocation)
+
+    # Django DataAccess
+    databaseManager = DjangoDataBaseManager()
 
     # data access objects
     productsDataAccess = ShelveProductsDataAccess(databaseManager)

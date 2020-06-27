@@ -132,28 +132,27 @@ class Group(AuthorizationParent):
         self.details = details
         self.authorizations = []
 
-
 class Authorization:
     id=None
     description=''
     model=''
     create=False
-    change=False
+    edit=False
     view=False
     delete=False
 
-    def __init__(self, model, description, id=None, create=False, change=False, view=False, delete=False):
+    def __init__(self, model, description, id=None, create=False, edit=False, view=False, delete=False):
         self.id = id
         self.model = model
         self.description = description
         self.create = create
-        self.change = change
+        self.edit = edit
         self.view = view
         self.delete = delete
 
     def clear(self):
         self.create=False
-        self.change=False
+        self.edit=False
         self.view=False
         self.delete=False
 

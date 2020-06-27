@@ -40,6 +40,7 @@ class AuthenticationInputData:
 
 class AuthenticationOutputData:
     user = None
+    users = None
     messages = None
     groups = None
 
@@ -55,6 +56,7 @@ class AuthenticationOutputInterface(ABC):
 
 class Message:
     status = ''
+    message = ''
     def __init__(self, status):
         self.status = status
 
@@ -77,12 +79,15 @@ class AuthenticationService(AuthenticationInputInterface):
             self.presenter = presenter 
         
     def authenticate(self):
-        user = self.userDataAccess.get(self.inputData.username)
+        print('in service, authenticate', self.inputData.username)
+        user = self.userDataAccess.get_by_username(self.inputData.username)
+        print('got user')
         if  user != None and self.inputData.password == user.password:
             user.isAuthenticated = True
             
             self.outputData.user = user
             self.presenter.set_user(self.outputData)
+            
             
             self.outputData.messages = Message('Success')
             self.presenter.set_messages(self.outputData)
@@ -107,12 +112,22 @@ class AuthenticationService(AuthenticationInputInterface):
             self.presenter.set_user(self.outputData)
 
     def getuser(self):
-        user = self.userDataAccess.get(self.inputData.username)
+        # user = self.userDataAccess.get(self.inputData.username)
+        print('In service User getuser')
+        try:
+            user = self.userDataAccess.get_by_username(self.inputData.username)
+            print('In service User getuser, username is', user.username)
+        except AttributeError:
+            user = None
+            print('user with username', self.inputData.username, 'not found!')
+
 
         self.__present_user(user)
 
     def getusers(self):
         users = self.userDataAccess.get_all()
+
+        print('In service getusers no of users is', len(users))
 
         if len(users) > 0:
             self.outputData.users = users
@@ -127,7 +142,7 @@ class AuthenticationService(AuthenticationInputInterface):
             self.inputData.email,
             self.inputData.phonenumber
         )
-        newuser.id = self.inputData.username
+        # newuser.id = self.inputData.username
         newuser.authorizations = self.inputData.authorizations
         newuser.groups = self.inputData.groups
 
@@ -135,12 +150,36 @@ class AuthenticationService(AuthenticationInputInterface):
         print("In create user service, before save, phnenumber is: " + str(newuser.phonenumber))
 
         print("In create user service, username is: " + str(self.inputData.username))
-        user = self.userDataAccess.save(newuser)
         
-        print("In create user service, after save, phnenumber is: " + str(user.phonenumber))
+        username_in_db = None
+        email_in_db = None
+        
+        try:
+            # if username and email is not in db, create user
+            username_in_db = list(filter(lambda user: user.username == self.inputData.username, self.userDataAccess.get_all()))[0]
+            email_in_db = list(filter(lambda user: user.email == self.inputData.email, self.userDataAccess.get_all()))[0]
+        except TypeError:
+            username_in_db = None
+            email_in_db = None
+        except IndexError:
+            username_in_db = None
+            email_in_db = None
+            
+            print('user not found!')
+        finally:
 
+            if (username_in_db == None and email_in_db == None):
+                user = self.userDataAccess.save(newuser)
+            
+                print("In create user service, after save, phnenumber is: " + str(user.phonenumber))
 
-        self.__present_user(user)
+                self.__present_user(user)
+            else:
+                print('username_in_db, ',username_in_db)
+                print('email_in_db, ',email_in_db)
+                self.outputData.messages = Message(status='Failure')
+                self.outputData.messages.message = 'Username or email already exists!'
+                self.presenter.set_messages(self.outputData)
     
     def activate_user(self):
         id = self.inputData.id
@@ -157,6 +196,7 @@ class AuthenticationService(AuthenticationInputInterface):
         self.__present_user(user)
 
     def deleteuser(self):
+        print('user id is', self.inputData.id)
         id = self.inputData.id
         usertodelete = self.userDataAccess.get(id)
         user = self.userDataAccess.delete(usertodelete)
@@ -186,7 +226,7 @@ class AuthenticationService(AuthenticationInputInterface):
         user.id = self.inputData.id
         user.authorizations = self.inputData.authorizations
         user.groups = self.inputData.groups
-        print("In update user service, username is: " + str(self.inputData.username))
+        print("In update user service, user id is: " , user.id)
         self.outputData.clear()
         
         user = self.userDataAccess.save(user)

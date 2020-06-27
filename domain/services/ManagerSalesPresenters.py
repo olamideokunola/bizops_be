@@ -56,13 +56,9 @@ class ManagerSalesPresenter(ManagerSaleOutputInterface):
     def __init__(self, managerSaleViewModel):
         self.managerSaleViewModel = managerSaleViewModel
 
-    def set_sale(self, managerSaleOutputData):
-        # get sale from managerSaleOutputData,
-        # convert to JSON and put in 
-        # managerSaleViewModel
-        # self.managerSaleViewModel.sale = self.make_json_complaint(managerSaleOutputData.sale)
-        daysale = managerSaleOutputData.sale
-        self.managerSaleViewModel.sale = {
+    @staticmethod
+    def _format_sale(daysale):
+        return {
                 "id": daysale.id,
                 "product": {
                     "id": daysale.product.id,
@@ -87,7 +83,7 @@ class ManagerSalesPresenter(ManagerSaleOutputInterface):
                     ]
                 },
                 "quantity": daysale.quantity,
-                "price": daysale.price,
+                "price": {'price': float(daysale.price)},
                 "currency": daysale.currency,
                 "date": {
                     "year": daysale.date.year,
@@ -104,68 +100,34 @@ class ManagerSalesPresenter(ManagerSaleOutputInterface):
                         "day": daysale.customer.date.day if daysale.customer != None else None,
                     }
                 },
-                "creator": daysale.creator,
-                "lastSaleTime": daysale.lastSaleTime,
+                "creator": daysale.creator.username,
+                "lastSaleTime":  str(daysale.lastSaleTime),
                 "currency": daysale.currency,
-            } if daysale != None else None
+            }
+
+    def set_sale(self, managerSaleOutputData):
+        # get sale from managerSaleOutputData,
+        # convert to JSON and put in 
+        # managerSaleViewModel
+        # self.managerSaleViewModel.sale = self.make_json_complaint(managerSaleOutputData.sale)
+        print('In set sales')
+        daysale = managerSaleOutputData.sale
+        self.managerSaleViewModel.sale = self._format_sale(daysale) if daysale != None else None
 
     def set_sales(self, managerSaleOutputData):
         # get sale from managerSaleOutputData,
         # convert to JSON and put in 
         # managerSaleViewModel
-        self.managerSaleViewModel.sales = self.make_json_complaint(managerSaleOutputData.sales)
+        print('In set sales')
+        self.managerSaleViewModel.sales = [
+                self._format_sale(sale) for sale in managerSaleOutputData.sales
+            ]
     
     def __get_formatted_sales(self, salesObj):
+        # print('prices type', type(salesObj[0].product.prices))
+        # print('prices', (salesObj[0].product))
         return [ 
-            {
-                "id": saleObj.id,
-                "product": {
-                    "id": saleObj.product.id,
-                    "name": saleObj.product.name,
-                    "title": saleObj.product.title,
-                    "date": {
-                        "year": saleObj.product.date.year,
-                        "month": saleObj.product.date.month,
-                        "day": saleObj.product.date.day
-                    },
-                    "price": {
-                        'date': '%i-%02i-%02i' % (saleObj.product.price.fromDate.year, saleObj.product.price.fromDate.month, saleObj.product.price.fromDate.day) if saleObj.product.price != None else None,
-                        'price': saleObj.product.price.amount if saleObj.product.price != None else None,
-                        'active': saleObj.product.price.active if saleObj.product.price != None else None,
-                    },
-                    'prices': [
-                        {
-                            'date': '%i-%02i-%02i' % (price.fromDate.year, price.fromDate.month, price.fromDate.day),
-                            'price': price.amount,
-                            'active': price.active
-                        } for price in saleObj.product.prices
-                    ]
-                },
-                "quantity": saleObj.quantity,
-                "price": {
-                    'date': '%i-%02i-%02i' % (saleObj.product.price.fromDate.year, saleObj.product.price.fromDate.month, saleObj.product.price.fromDate.day) if saleObj.product.price != None else None,
-                    'price': saleObj.product.price.amount if saleObj.product.price != None else None,
-                    'active': saleObj.product.price.active if saleObj.product.price != None else None,
-                },
-                "currency": saleObj.currency,
-                "date": {
-                    "year": saleObj.date.year,
-                    "month": saleObj.date.month,
-                    "day": saleObj.date.day
-                },
-                "customer": {
-                    "id": saleObj.customer.id if saleObj.customer != None else None,
-                    "name": saleObj.customer.name if saleObj.customer != None else None,
-                    "title": saleObj.customer.title if saleObj.customer != None else None,
-                    "date": {
-                        "year": saleObj.customer.date.year if saleObj.customer != None else None,
-                        "month": saleObj.customer.date.month if saleObj.customer != None else None,
-                        "day": saleObj.customer.date.day if saleObj.customer != None else None,
-                    }
-                },
-                "creator": saleObj.creator,
-                "lastSaleTime": saleObj.lastSaleTime
-            } for saleObj in salesObj
+           self._format_sale(saleObj) for saleObj in salesObj
         ]
 
     def set_day_sales(self, managerSaleOutputData):
@@ -173,7 +135,7 @@ class ManagerSalesPresenter(ManagerSaleOutputInterface):
         # convert to JSON and put in 
         # managerSaleViewModel
         # self.managerSaleViewModel.daysales = self.make_json_complaint(managerSaleOutputData.daysales)
-
+        print('In  set day dales')
         self.managerSaleViewModel.daysales = self.__get_formatted_sales(managerSaleOutputData.daysales)
 
     def set_month_sales(self, managerSaleOutputData):

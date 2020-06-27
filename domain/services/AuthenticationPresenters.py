@@ -22,6 +22,7 @@ class AuthenticationPresenter(BasePresenter, AuthenticationOutputInterface):
         # convert to JSON compliant object and put in 
         # viewModel
         #self.viewModel.user = self.make_json_complaint(outputData.user)
+        print('In set user')
         self.viewModel.user = {
             'id': outputData.user.id,
             'username': outputData.user.username,
@@ -33,6 +34,7 @@ class AuthenticationPresenter(BasePresenter, AuthenticationOutputInterface):
             'authorizations': list(outputData.user.authorizations) if outputData.user.authorizations != None else None,
             'groups': list(outputData.user.groups) if outputData.user.groups != None else None
         }
+        print('user set', self.viewModel.user)
     
     def set_users(self, outputData):
         # Get users from outputData

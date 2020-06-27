@@ -30,7 +30,7 @@ except Exception as ex:
     print(ex)
 
 
-from sales_api.models import Sale, Price, Product, Authorization, Group, Person, Customer, Unit, User, ProductionBatch
+from sales_api.models import Sale, Price, Product, Authorization, Group, Person, Customer, Unit, User, ProductionBatch, ProductionProduct
 from domain.sales.Sales import Sale as SaleEntity
 from domain.customers.Customers import Person as PersonEntity, Customer as CustomerEntity
 from domain.users.Users import Authorization as AuthorizationEntity, Group as GroupEntity, User as UserEntity
@@ -88,38 +88,61 @@ class ModelManager(AbstractModelManager):
                 # delete failed
                 return None
 
+    def delete_all(self):
+        return self.ModelClass.objects.all().delete()[0]
+
     def get_all(self):
         print('In getall')
-        if len(self.ModelClass.objects.all()) > 0:
-            # print('Items more than 0')
+        numOfItems = len(self.ModelClass.objects.all())
+        if numOfItems > 0:
+            print('Items more than 0, number is', numOfItems)
             return [self.materialize(item) for item in self.ModelClass.objects.all() ] 
+        else:
+            print('No items found!')
+            return []
 
     def get_ids(self):
         print('In getids')
         return [item.id for item in self.ModelClass.objects.all()]
 
+
 class AuthorizationModelManager(ModelManager, Materializer):
     ModelClass = Authorization
 
+    @staticmethod
+    def create_model(authObject):
+        if isinstance(authObject, dict):
+            print('is dict')
+            return Authorization.objects.create(
+                        description = authObject['description'],
+                        model = authObject['model'],
+                        can_create = authObject['create'],
+                        can_edit = authObject['edit'],
+                        can_view = authObject['view'],
+                        can_delete = authObject['delete'],
+                    )
+        elif isinstance(authObject, AuthorizationEntity):
+            return Authorization.objects.create(
+                        description = authObject.description,
+                        model = authObject.model,
+                        can_create = authObject.create,
+                        can_edit = authObject.edit,
+                        can_view = authObject.view,
+                        can_delete = authObject.delete,
+                    )
+    
     def create(self, authObject):
         if authObject == None:
             auth = Authorization.objects.create()
         else:
             if authObject.id == 0 or authObject.id == None:
-                auth = Authorization.objects.create(
-                    description = authObject.description,
-                    model = authObject.model,
-                    can_create = authObject.create,
-                    can_change = authObject.change,
-                    can_view = authObject.view,
-                    can_delete = authObject.delete,
-                )
+                auth = self.create_model(authObject)
             else:
                 auth = Authorization.objects.get(pk=authObject.id)
                 auth.description = authObject.description
                 auth.model = authObject.model
                 auth.can_create = authObject.create
-                auth.can_change = authObject.change
+                auth.can_edit = authObject.edit
                 auth.can_view = authObject.view
                 auth.can_delete = authObject.delete
 
@@ -133,7 +156,7 @@ class AuthorizationModelManager(ModelManager, Materializer):
             model=authModel.model,
             description=authModel.description,
             create=authModel.can_create,
-            change=authModel.can_change,
+            edit=authModel.can_edit,
             view=authModel.can_view,
             delete=authModel.can_delete,
         )
@@ -141,39 +164,53 @@ class AuthorizationModelManager(ModelManager, Materializer):
 class GroupModelManager(ModelManager, Materializer):
     ModelClass = Group
 
+    @staticmethod
+    def create_model(groupObject):
+        return Group.objects.create(
+                    description = groupObject.description,
+                    details = groupObject.details, 
+                )
+
     def create(self, groupObject):
         if groupObject == None:
             group = Group.objects.create()
         else:
+            authModelManager = AuthorizationModelManager()
+            authorizations = [ authModelManager.create(auth) for auth in groupObject.authorizations ] if groupObject.authorizations != None else None
+
+            print('auths is', len(authorizations))
             # Save new
             if groupObject.id == 0 or groupObject.id == None:
                 
-                authorizations = [ Authorization.objects.get(pk=auth.id) for auth in groupObject.authorizations ] 
+                # authorizations = [ Authorization.objects.get(pk=auth.id) for auth in groupObject.authorizations ] 
                 
                 group = Group.objects.create(
                     description = groupObject.description,
                     details = groupObject.details, 
                 )
-                group.authorizations.set(authorizations)
+                group.authorizations.set(authorizations) if authorizations != None else None
             else:
                 # update existing
                 group = Group.objects.get(pk=groupObject.id)
                 group.description = groupObject.description
                 group.details = groupObject.details
 
-                authorizations = [ Authorization.objects.get(pk=auth.id) for auth in groupObject.authorizations ] 
-                group.authorizations.set(authorizations)
+                # authorizations = [ authModelManager.create(auth) for auth in groupObject.authorizations ] if groupObject.authorizations != None else None
+                # authorizations = [ Authorization.objects.get(pk=auth.id) for auth in groupObject.authorizations ] 
+                group.authorizations.set(authorizations) if authorizations != None else None
 
                 group.save()
 
         return self.materialize(group)
 
     def materialize(self, groupModel):
-
+        # print('materializing group!')
         groupEntity = GroupEntity(
             description=groupModel.description,
             details=groupModel.details,
         )
+
+        # print('Group entity created', groupEntity.description)
 
         groupEntity.id=groupModel.id
         groupEntity.authorizations=[{
@@ -181,15 +218,23 @@ class GroupModelManager(ModelManager, Materializer):
                 'description': authorization.description,
                 'model': authorization.model,
                 'create': authorization.can_create,
-                'change': authorization.can_change,
+                'edit': authorization.can_edit,
                 'view': authorization.can_view,
                 'delete': authorization.can_delete,
             } for authorization in groupModel.authorizations.all()]
-
+        print('group collected')
         return groupEntity
 
 class PersonModelManager(ModelManager, Materializer):
     ModelClass = Person
+
+    @staticmethod
+    def create_model(personObject):
+        return Person.objects.create(
+                    firstname = personObject.firstname,
+                    lastname = personObject.lastname, 
+                    middlename = personObject.middlename, 
+                )
 
     def create(self, personObject):
         if personObject == None:
@@ -217,11 +262,7 @@ class PersonModelManager(ModelManager, Materializer):
 
     def materialize(self, personModel):
 
-        personEntity = PersonEntity(
-            firstname=personModel.firstname,
-            lastname=personModel.lastname,
-            middlename=personModel.middlename,
-        )
+        personEntity = self.create_model(personModel)
 
         personEntity.id=personModel.id
         return personEntity
@@ -326,21 +367,38 @@ class UnitModelManager(ModelManager, Materializer):
 class PriceModelManager(ModelManager, Materializer):
     ModelClass = Price
 
+    @staticmethod
+    def create_model(priceObject):
+        print('In PriceModelManager')
+        # print('In PriceModelManager, product id is', priceObject.product.id)
+        if isinstance(priceObject, PriceEntity):
+            print('is PriceEntity', priceObject.fromDate, priceObject.toDate, priceObject.amount, priceObject.currency, priceObject.active)
+            return Price.objects.create(
+                        fromDate = priceObject.fromDate if priceObject.fromDate != None else None,
+                        toDate = priceObject.toDate if priceObject.toDate != None else None,
+                        amount = priceObject.amount if priceObject.amount != None else None,
+                        currency = priceObject.currency if priceObject.currency != None else None,
+                        active = priceObject.active if priceObject.active != None else None,
+                        product = Product.objects.get(pk=priceObject.product.id) if priceObject.product != None else None
+                    )
+        elif isinstance(priceObject, dict):
+            print('is dict', priceObject)
+            return Price.objects.create(
+                        fromDate = priceObject['date'] if 'date' in  priceObject else None,
+                        toDate = priceObject['toDate'] if 'toDate' in  priceObject else None,
+                        amount = priceObject['price'] if 'price' in  priceObject else None,
+                        currency = priceObject['currency'] if 'currency' in  priceObject else None,
+                        active = priceObject['active'] if 'active' in  priceObject else None,
+                        product = Product.objects.get(pk=priceObject['product']['id']) if 'product' in  priceObject else None,
+                    )
+
     def create(self, priceObject):
         if priceObject == None:
             price = Price.objects.create()
         else:
             # Save new
-
             if priceObject.id == 0 or priceObject.id == None:
-                price = Price.objects.create(
-                    fromDate = priceObject.fromDate,
-                    toDate = priceObject.toDate, 
-                    amount = priceObject.amount, 
-                    currency = priceObject.currency, 
-                    active = priceObject.active, 
-                    product = Product.objects.get(pk=priceObject.product.id) if priceObject.product != None else None
-                )
+                price = self.create_model(priceObject)
             else:
                 # update existing
                 price = Price.objects.get(pk=priceObject.id)
@@ -377,8 +435,19 @@ class UserModelManager(ModelManager, Materializer):
         if userObject == None:
             user = User.objects.create()
         else:
-            authorizations = [ Authorization.objects.get(pk=auth.id) for auth in userObject.authorizations ] if userObject.authorizations != None else None
-            groups = [ Group.objects.get(pk=group.id) for group in userObject.groups ] if userObject.groups != None else None
+            # create authorizations and group
+            print('In UserModelManager create ', userObject.authorizations )
+            authorizations = [ AuthorizationModelManager.create_model(auth) for auth in userObject.authorizations ] if userObject.authorizations != None else None
+            
+            print('In UserModelManager auths prepared ' )
+            groups = [ GroupModelManager.create_model(group) for group in userObject.groups ] if userObject.groups != None else None
+
+            print('auths is', len(authorizations))
+            print('auth type', type(authorizations[0]))
+
+            # create groups
+            # authorizations = [ Authorization.objects.get(pk=auth.id) for auth in userObject.authorizations ] if userObject.authorizations != None else None
+            # groups = [ Group.objects.get(pk=group.id) for group in userObject.groups ] if userObject.groups != None else None
         
             person = Person.objects.create(
                 firstname = userObject.person.firstname,
@@ -398,8 +467,8 @@ class UserModelManager(ModelManager, Materializer):
                     isAuthenticated = userObject.isAuthenticated, 
                 )
 
-                user.authorizations.set(authorizations)
-                user.groups.set(groups)
+                user.authorizations.set(authorizations) if authorizations != None else None
+                user.groups.set(groups) if groups != None else None
                 user.active = False
                 
             else:
@@ -438,7 +507,7 @@ class UserModelManager(ModelManager, Materializer):
                 'description': authorization.description,
                 'model': authorization.model,
                 'create': authorization.can_create,
-                'change': authorization.can_change,
+                'edit': authorization.can_edit,
                 'view': authorization.can_view,
                 'delete': authorization.can_delete,
             } for authorization in userModel.authorizations.all()] if userModel.authorizations != None else None
@@ -452,7 +521,7 @@ class UserModelManager(ModelManager, Materializer):
                     'description': authorization.description,
                     'model': authorization.model,
                     'create': authorization.can_create,
-                    'change': authorization.can_change,
+                    'edit': authorization.can_edit,
                     'view': authorization.can_view,
                     'delete': authorization.can_delete,
                 } for authorization in group.authorizations.all()] if group.authorizations != None else None
@@ -469,69 +538,88 @@ class ProductModelManager(ModelManager, Materializer):
         if productObject == None:
             product = Product.objects.create()
         else:
+            print('In create 1')
+            print('units', type(productObject.units))
 
-            units = [ Unit.objects.get(pk=unit.id) for unit in productObject.units ] if productObject.units != None else None
+            units = None
+
+            if productObject.units != None and len(productObject.units) > 0:
+                if isinstance(productObject.units[0], dict):
+                    units = [ Unit.objects.get(pk=unit['id']) for unit in productObject.units ] if productObject.units != None else None
+                elif isinstance(productObject.units[0], UnitEntity):
+                    units = [ Unit.objects.get(pk=unit.id) for unit in productObject.units ] if productObject.units != None else None
+
 
             # Save new
+            print('In create 2', productObject.group)
             if productObject.id == 0 or productObject.id == None:  
                 product = Product.objects.create(
                     name = productObject.name,
                     group = productObject.group,
                     title = productObject.name,
-                    price = productObject.price,
                     date = productObject.date,
                 )
-
-                product.units.set(units)
-
-                # create prices
-                if productObject.prices != None:
-                    for price in productObject.prices:
-                        Price.objects.create(
-                            fromDate = price.fromDate,
-                            toDate = price.toDate, 
-                            amount = price.amount, 
-                            currency = price.currency, 
-                            active = price.active, 
-                            product = Product.objects.get(pk=product.id) if product != None else None
-                        ) 
                 
             else:
                 # update existing
+                # Get model from db
+                print('about to update')
                 product = Product.objects.get(pk=productObject.id)
+                print('about to update', productObject.date)
 
-                product.name = productObject.name
-                product.group = productObject.group
-                product.title = productObject.name
-                product.price = productObject.price
-                product.date = productObject.date
+                # Update the fields
+                product.name = productObject.name if productObject.name != None else None
+                product.group = productObject.group if productObject.group != None else None
+                product.title = productObject.name if productObject.name != None else None
+                product.date = productObject.date if productObject.date != None else None
+
             
-                product.units.set(units)
-
-                # create prices
-                if productObject.prices != None:
-                    for price in productObject.prices:
-                        Price.objects.create(
-                            fromDate = price.fromDate,
-                            toDate = price.toDate, 
-                            amount = price.amount, 
-                            currency = price.currency, 
-                            active = price.active, 
-                            product = Product.objects.get(pk=product.id) if product != None else None
-                        ) 
-
+            # Set fields common to new save and update
+            # print('In create 2 price amount', productObject.price.fromDate)
+            if productObject.price != None:
+                price = Price(
+                    fromDate = productObject.price.fromDate if productObject.price.fromDate != None else None,
+                    toDate = productObject.price.toDate if productObject.price.toDate != None else None,
+                    amount = productObject.price.amount if productObject.price.amount != None else None,
+                    currency = productObject.price.currency if productObject.price.currency != None else None,
+                    active = productObject.price.active if productObject.price.active != None else None,
+                )
+                print('price created')
+                price.save()
+                print('price created')
+                product.price = price
                 product.save()
+
+            product.units.set(units) if units != None else None
+
+            # create prices
+            if productObject.prices != None:
+                for price in productObject.prices:
+                    Price.objects.create(
+                        fromDate = price.fromDate,
+                        toDate = price.toDate, 
+                        amount = price.amount, 
+                        currency = price.currency, 
+                        active = price.active, 
+                        product = Product.objects.get(pk=product.id) if product != None else None
+                    ) 
 
         return self.materialize(product)
 
     def materialize(self, productModel):
 
+        print('price',productModel.price )
+        # Set basic fields
         productEntity = ProductEntity(
             name = productModel.name,
             price = productModel.price,
             date = productModel.date,
         )
 
+        # set group
+        productEntity.group = productModel.group
+
+        productEntity.units=[]
         productEntity.units=[
             {
                 'id': unit.id,
@@ -539,8 +627,10 @@ class ProductModelManager(ModelManager, Materializer):
                 'longDesc': unit.longDesc,
             } for unit in productModel.units.all()] if productModel.units != None else None
 
+        productEntity.prices=[]
         if productModel.product_prices != None:
             for price in productModel.product_prices.all():
+                print('adding prices')
                 productEntity.add_price(
                     amount = price.amount,
                     fromDate = price.fromDate,
@@ -560,19 +650,49 @@ class SaleModelManager(ModelManager, Materializer):
         if saleObject == None:
             sale = Sale.objects.create()
         else:
-
+            print('Sale id', saleObject.id)
             # Save new
             if saleObject.id == 0 or saleObject.id == None:  
+                print('About to save')
+                prd = Product.objects.get(pk=saleObject.product.id)
+                print('product is', prd)
+                print('prices is', prd.product_prices.all())
+                print('creator is', saleObject.creator)
+                print('quantity is', saleObject.quantity)
+                print('currency is', saleObject.currency)
+                print('price is', saleObject.price)
+                print('date is', saleObject.date)
+                print('customer is', saleObject.customer)
+                print('lastSaleTime is', saleObject.lastSaleTime)
+                print('1 creator type is', type(saleObject.creator))
+                print('1 creator type is', saleObject.creator)
+
+                if isinstance(saleObject.creator, UserEntity):
+                    creator = User.objects.get(pk=saleObject.creator.id) if saleObject.creator != None else None
+                elif isinstance(saleObject.creator, dict):
+                    creator = User.objects.get(pk=saleObject.creator['id']) if saleObject.creator != None else None
+
+                print('2 creator type is', type(creator))
+
+                price = None
+                # convert price to plain number
+                if isinstance(saleObject.price, dict):
+                    price = float(saleObject.price['price'])
+                if isinstance(saleObject.price, Price):
+                    price = saleObject.price.amount
+
                 sale = Sale.objects.create(
-                    product = Product.objects.get(pk=saleObject.customer.id) if saleObject.customer != None else None,
+                    product = Product.objects.get(pk=saleObject.product.id) if saleObject.product != None else None,
                     quantity = saleObject.quantity,
-                    price = saleObject.price,
+                    price = price,
                     currency = saleObject.currency,
                     date = saleObject.date,
                     customer = Customer.objects.get(pk=saleObject.customer.id) if saleObject.customer != None else None,
-                    creator = User.objects.get(pk=saleObject.creator.id) if saleObject.creator != None else None,
+                    creator = creator,
                     lastSaleTime = saleObject.lastSaleTime,
                 )
+
+                print('After sale')
 
             else:
                 # update existing
@@ -594,16 +714,21 @@ class SaleModelManager(ModelManager, Materializer):
 
     def materialize(self, saleModel):
 
+        productModelManager = ProductModelManager()
+        customerModelManager = CustomerModelManager()
+        userModelManager = UserModelManager()
+
         saleEntity = SaleEntity(
-            product = Product.objects.get(pk=saleModel.product.id) if saleModel.product != None else None,
+            product = productModelManager.materialize(Product.objects.get(pk=saleModel.product.id)) if saleModel.product != None else None,
             quantity = saleModel.quantity,
             price = saleModel.price,
             currency = saleModel.currency,
             date = saleModel.date,
-            customer = Customer.objects.get(pk=saleModel.customer.id) if saleModel.customer != None else None,
-            creator = User.objects.get(pk=saleModel.creator.id) if saleModel.creator != None else None,     
+            customer = customerModelManager.materialize(Customer.objects.get(pk=saleModel.customer.id)) if saleModel.customer != None else None,
+            creator = userModelManager.materialize(User.objects.get(pk=saleModel.creator.id)) if saleModel.creator != None else None,     
         )
 
+    
         saleEntity.lastSaleTime = saleModel.lastSaleTime
 
         saleEntity.id=saleModel.id
@@ -613,74 +738,173 @@ class SaleModelManager(ModelManager, Materializer):
 class ProductionBatchModelManager(ModelManager, Materializer):
     ModelClass = ProductionBatch
 
-    def create(self, productionBatchObject):
-        if productionBatchObject == None:
+    @staticmethod
+    def create(inputParams):
+        if inputParams != None:
+            id =  inputParams['id'] if 'id' in inputParams else None
+            productType =  inputParams['productType'] if 'productType' in inputParams else None
+            flourQuantity =  inputParams['flourQuantity'] if 'flourQuantity' in inputParams else None
+            date =  inputParams['date'] if 'date' in inputParams else None
+            startTime = inputParams['startTime'] if 'startTime' in inputParams else None
+            endTime = inputParams['endTime'] if 'endTime' in inputParams else None
+            baker =  inputParams['baker'] if 'baker' in inputParams else None
+            supervisor =  inputParams['supervisor'] if 'supervisor' in inputParams else None
+            assistants = inputParams['assistants'] if 'assistants' in inputParams else None
+            problems = inputParams['problems'] if 'problems' in inputParams else None
+            products = inputParams['products'] if 'products' in inputParams else []
+
+        # Create an empty object with id
+        if inputParams == None or inputParams == {}:
             productionBatch = ProductionBatch.objects.create()
         else:
 
-            products = [ Product.objects.get(pk=product.id) for product in productionBatchObject.products ]
-
             # Save new
-            if productionBatchObject.id == 0 or productionBatchObject.id == None:  
-                productionBatch = ProductionBatch.objects.create(
-                    productType=productionBatchObject.productType, 
-                    flourQuantity=productionBatchObject.flourQuantity, 
-                    date=productionBatchObject.date, 
-                    startTime=productionBatchObject.startTime, 
-                    baker=productionBatchObject.baker,
+            if id == 0 or id == None:  
+
+                # create productionBatch
+                productionBatch = ProductionBatch(
+                    productType=productType,
+                    flourQuantity=flourQuantity,
+                    date=date,
+                    startTime=startTime,
+                    endTime=endTime,
+                    baker=baker,
+                    supervisor=supervisor,
+                    assistants=assistants,
+                    problems=problems
                 )
-
-                productionBatch.endTime = productionBatchObject.endTime
-                productionBatch.supervisor = productionBatchObject.supervisor
-                productionBatch.assistants = ','.join(productionBatchObject.assistants) if productionBatchObject.assistants != None else None
-                productionBatch.problems = ','.join(productionBatchObject.problems) if productionBatchObject.problems != None else None
-
-                productionBatch.products.set(products)
-
-            else:
-                # update existing
-                productionBatch = ProductionBatch.objects.get(pk=productionBatchObject.id)
-
-                productionBatch.productType=productionBatchObject.productType
-                productionBatch.flourQuantity=productionBatchObject.flourQuantity
-                productionBatch.date=productionBatchObject.date
-                productionBatch.startTime=productionBatchObject.startTime
-                productionBatch.baker=productionBatchObject.baker
-
-                productionBatch.endTime = productionBatchObject.endTime
-                productionBatch.supervisor = productionBatchObject.supervisor
-                productionBatch.assistants = ','.join(productionBatchObject.assistants) if productionBatchObject.assistants != None else None
-                productionBatch.problems = ','.join(productionBatchObject.problems) if productionBatchObject.problems != None else None
-
-                productionBatch.products.set(products)
 
                 productionBatch.save()
 
-        return self.materialize(productionBatch)
+                # create production products
+                for product in products:
+                    product['productionBatchId'] = productionBatch.id
+                    ProductionProductModelManager.create(product)
 
-    def materialize(self, productionBatchModel):
+            # update existing
+            else:
+                # Get productionBatch from DB
+                productionBatch = ProductionBatch.objects.get(pk=id)
+                
+                # update fields
+                productionBatch.productType = productType
+                productionBatch.flourQuantity = flourQuantity
+                productionBatch.date = date
+                productionBatch.startTime = startTime
+                productionBatch.endTime= endTime
+                productionBatch.baker= baker
+                productionBatch.supervisor= supervisor
+                productionBatch.assistants= assistants
+                productionBatch.problems= problems
 
-        productionBatchEntity = ProductionBatchEntity(
-            productType=productionBatchModel.productType, 
-            flourQuantity=productionBatchModel.flourQuantity, 
-            date=productionBatchModel.date, 
-            startTime=productionBatchModel.startTime, 
-            baker=productionBatchModel.baker,        
-        )
+                productionBatch.save()
 
-        productionBatchEntity.endTime = productionBatchModel.endTime
-        productionBatchEntity.supervisor = productionBatchModel.supervisor
-        productionBatchEntity.assistants = productionBatchModel.assistants.split(',') if productionBatchModel.assistants != None else None
-        productionBatchEntity.problems = productionBatchModel.problems.split(',') if productionBatchModel.problems != None else None
-        
-        productModelManager = ProductModelManager()
-        productionBatchEntity.products = [
-                productModelManager.materialize(product) for product in productionBatchModel.products.all()
-            ] if productionBatchModel.products.all() != None else None
+                # delete old production products
+                productionBatch.productionproduct_set.clear()
 
-        productionBatchEntity.id=productionBatchModel.id
+                # create new production products
+                for product in products:
+                    # print('product', product)
+                    product['id'] = None
+                    product['productionBatchId'] = productionBatch.id
+                    ProductionProductModelManager.create(product)
 
-        return productionBatchEntity
+        return ProductionBatchModelManager.materialize(productionBatch)
+
+    @staticmethod
+    def materialize(productionBatchModel):
+        productionProducts = productionBatchModel.productionproduct_set.all()
+        return {
+            'id': productionBatchModel.id,
+            'productType': productionBatchModel.productType,
+            'flourQuantity': productionBatchModel.flourQuantity,
+            'date': productionBatchModel.date,
+            'startTime': productionBatchModel.startTime,
+            'endTime': productionBatchModel.endTime,
+            'baker': productionBatchModel.baker,
+            'supervisor': productionBatchModel.supervisor,
+            'assistants': productionBatchModel.assistants,
+            'problems': productionBatchModel.problems,
+            'products': [ 
+                {
+                    "id": productionProduct.id,
+                    "name": productionProduct.product.name,
+                    "price": productionProduct.product.price.amount,
+                    "goodQuantity": productionProduct.goodQuantity,
+                    "damagedQuantity": productionProduct.damagedQuantity
+                } for productionProduct in productionProducts]
+        }
+
+### Class representing production output, associated with production batch and product, takes in a dictionary and returns a dictionary
+class ProductionProductModelManager(ModelManager, Materializer):
+    ModelClass = ProductionProduct
+    
+    @staticmethod
+    def create(inputParams):
+        if inputParams != None:
+            id =  inputParams['id'] if 'id' in inputParams else None
+            productionBatchId =  inputParams['productionBatchId'] if 'productionBatchId' in inputParams else None
+            name =  inputParams['name'] if 'name' in inputParams else None
+            price =  inputParams['price'] if 'price' in inputParams else None
+            goodQuantity = inputParams['goodQuantity'] if 'goodQuantity' in inputParams else None
+            damagedQuantity = inputParams['damagedQuantity'] if 'damagedQuantity' in inputParams else None
+
+            # Get product if available
+            product = Product.objects.get(name=name) if name != None else None 
+
+            # Get production batch if available
+            productionBatch = ProductionBatch.objects.get(id=productionBatchId) if productionBatchId != None else None  
+
+
+        # Create an empty object with id if there are no inputParams
+        if inputParams == None or inputParams == {}:
+            print('No input params')
+            productionProduct = ProductionProduct.objects.create()
+            print('No input params', productionProduct.id)
+        else:
+
+            # Save new
+            if id == 0 or id == None:  
+
+                # create productionproduct
+                productionProduct = ProductionProduct(
+                    productionBatch=productionBatch,
+                    product=product,
+                    goodQuantity=goodQuantity,
+                    damagedQuantity=damagedQuantity
+                )
+
+                productionProduct.save()
+
+            # update existing
+            else:
+                # Get productionBatch from DB
+                productionProduct = ProductionProduct.objects.get(pk=id)
+                
+                # update fields
+                productionProduct.goodQuantity = goodQuantity
+                productionProduct.damagedQuantity = damagedQuantity
+
+                # update associations
+                productionProduct.productionBatch =  productionBatch
+                productionProduct.product =  product
+
+                productionProduct.save()
+
+        return ProductionProductModelManager.materialize(productionProduct)
+    
+    @staticmethod
+    def materialize(productionProductModel):
+        return {
+            'id': productionProductModel.id, 
+            'productionBatchId': productionProductModel.productionBatch.id, 
+            'name': productionProductModel.product.name, 
+            'price': productionProductModel.product.price.amount, 
+            'goodQuantity': productionProductModel.goodQuantity,  
+            'damagedQuantity': productionProductModel.damagedQuantity
+        }
+
+    
 
 class DjangoDataBaseManager(DatabaseManagerInterface):
     saleModelManager = SaleModelManager()
@@ -693,6 +917,7 @@ class DjangoDataBaseManager(DatabaseManagerInterface):
     userModelManager = UserModelManager()
     productModelManager = ProductModelManager()
     productionBatchModelManager = ProductionBatchModelManager()
+    productionProductModelManager = ProductionProductModelManager()
     
     models = {
                 'Sale': saleModelManager,
@@ -704,7 +929,8 @@ class DjangoDataBaseManager(DatabaseManagerInterface):
                 'Person': personModelManager,
                 'Price': priceModelManager,
                 'Unit': unitModelManager,
-                'ProductionBatch': productionBatchModelManager
+                'ProductionBatch': productionBatchModelManager,
+                'ProductionProduct': productionProductModelManager
             }      
 
     def __init__(self, dblocation=None):
@@ -720,11 +946,18 @@ class DjangoDataBaseManager(DatabaseManagerInterface):
         model = self.models[modelname]
         return model.delete(item)
 
+    def delete_all(self, databasename, modelname):
+        model = self.models[modelname]
+        return model.delete_all()
+
     def create_new_id(self, databasename, modelname):
         print('In create_new_id')
 
         item = self.save(databasename, modelname, None)
-        return item.id
+        if  isinstance(item, dict):
+            return item['id']
+        else:
+            return item.id
  
     def get(self, databasename, modelname, id):
         print('In get')
@@ -740,7 +973,9 @@ class DjangoDataBaseManager(DatabaseManagerInterface):
             for id in ids:
                 items.append(self.get(databasename, modelname, id))
         except AttributeError:
-            return None
+            return []
+        except TypeError:
+            return []
         else:
             return items
 
@@ -750,9 +985,19 @@ class DjangoDataBaseManager(DatabaseManagerInterface):
 
         ids = model.get_ids()
 
+        print('about to get day items')
+        print('about to get day items, date is', date)
+        print('about to get day items, ids are', ids)
+
         for id in ids:
-            if model.get(id).date == date:
-                items.append(model.get(id))
+            # print('date', model.get(id)['date'])
+            if isinstance(model.get(id), dict):
+
+                if str(model.get(id)['date']) == str(date):
+                    items.append(model.get(id))
+            else:
+                if str(model.get(id).date) == str(date):
+                    items.append(model.get(id))
 
         return items
     
@@ -775,124 +1020,3 @@ class DjangoDataBaseManager(DatabaseManagerInterface):
     def get_all(self, databasename, modelname):
         model = self.models[modelname]
         return model.get_all()
-
-
-
-# class Database():
-#     name = ''productionBatchModel
-#     dblocation = ''
-#     models = {}
-#     model = None
-
-#     def __init__(self, name, dblocation):
-#         pass
-#     #     self.name = name
-#     #     self.dblocation = dblocation + name + '/'
-   
-#     # def create_model(self, modelname):
-#     #     if modelname not in self.models.keys():
-#     #         self.models[modelname] = shelve.open(self.dblocation+modelname)
-
-#     def get_model(self, modelname):
-#         if modelname in self.models.keys():
-#             #return self.models[modelname]
-#             return shelve.open(self.dblocation+modelname)
-
-#     def save(self, modelname, item):
-#         model = self.get_model(modelname)
-#         print("id: " + str(item.id))
-#         if item.id != None:
-#             #save            
-#             print ('id: ' + str(item.id))
-#             model[str(item.id)] = item
-#         else:
-#             #create new id
-#             newid = self.create_new_id(modelname)
-#             #save with new id
-#             item.id = newid
-#             model[str(newid)] = item
-            
-#         return item
-
-#     def delete(self, modelname, item):
-#         model = self.get_model(modelname)
-#         print("id: " + str(item.id))
-
-#         if item.id != None:
-#             #delete            
-#             print ('id: ' + str(item.id))
-#             return model.pop(str(item.id))
-
-#     def create_new_id(self, modelname):
-#         model = self.get_model(modelname)
-#         if len(model.keys()) > 0:
-#             ids = [ item.id for item in model.values() if item.id != None]
-#             newid = max(ids) + 1
-#         else:
-#             newid = 1
-
-#         return newid
-        
-#     def get(self, modelname, id):
-#         model = self.get_model(modelname)
-
-#         if str(id) in model.keys():
-#             return model[str(id)]
-#         else:
-#             return None
-
-#     def get_many(self, modelname, ids):
-#         model = self.get_model(modelname)
-#         items = []  
-
-#         try:
-#             for id in ids:
-#                 items.append(self.get(modelname, id))
-#         except AttributeError:
-#             model.close()
-#             return None
-#         else:
-#             model.close()
-#             return items
-    
-#     def get_day_items(self, modelname, date):
-#         model = self.get_model(modelname)
-#         items = [] 
-
-#         for key in model.keys():
-#             if model[key].date == date:
-#                 items.append(model[key])
-#         model.close()
-#         return items
-    
-#     def get_day_item(self, modelname, date, id):
-#         model = self.get_model(modelname)
-
-#         if str(id) in model.keys():
-#             if model[str(id)].date == date:
-#                 return model[str(id)]
-#             else:
-#                 print('Item is not for date!')
-#                 model.close()
-#                 return None
-#         else:
-#             print('Item not in database!')
-#             model.close()
-#             return None
-
-#     def get_all(self, modelname):
-#         model = self.get_model(modelname)
-#         items = [] 
-        
-#         for key in model.keys():
-#             print (key)
-#             if key in model:
-#                 print (model[key])
-#             else: print('None')
-
-#         for key in model.keys():
-#             items.append(model[key])
-
-#         model.close()
-#         return items
-        

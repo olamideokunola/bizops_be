@@ -143,15 +143,33 @@ class ManagerManageProductsService(ManagerProductsInputInterface):
         self.managerProductOutputData.products = self.productsDataAccess.get_products()
         self.managerProductPresenter.set_products(self.managerProductOutputData)
 
+    def _get_units(self, units):
+        unit_ids = [unit['id'] for unit in units] if units != None else None
+        return self.unitsDataAccess.get_many(unit_ids)
+
+    @staticmethod
+    def _set_price(price):
+        if isinstance(price, Price):
+            return price
+        elif isinstance(price, dict):
+            return Price(
+                fromDate=price['date'] if 'date' in  price else None,
+                toDate=price['toDate'] if 'toDate' in  price else None,
+                amount=price['price'] if 'price' in  price else None,
+                currency=price['currency'] if 'currency' in  price else None,
+                active=price['active'] if 'active' in  price else None,
+            )
+
     def create_product(self):
         name = self.managerProductInputData.name
         group = self.managerProductInputData.group
         units = self.managerProductInputData.units
+        price = self.managerProductInputData.price
 
         print('In create_product, name is: ' + name) 
 
         products = self.productsDataAccess.get_products()
-        productNames = [ product.name for product in products ] 
+        productNames = [ product.name for product in products ] if products != None else []
 
         print('In create_product, productNames are: ' + str(productNames)) 
         
@@ -167,10 +185,17 @@ class ManagerManageProductsService(ManagerProductsInputInterface):
             print('Name does not exist') 
             product = Product(name=name)
             product.group = group
-            product.units = units
+            # unit_ids = [unit['id'] for unit in units] if units != None else None
+            product.units = self._get_units(units)
 
             # set today's date for daysale
             product.date = date.today()
+
+            # set price 
+            product.price = self._set_price(price)
+            # print('In create product product amount is', product.price.amount)
+
+            print('In create product date is', product.date)
 
             # save new sale to database
             savedproduct = self.productsDataAccess.save(product)
@@ -202,14 +227,28 @@ class ManagerManageProductsService(ManagerProductsInputInterface):
         if self.managerProductInputData.productid != None:
             product = self.productsDataAccess.get(self.managerProductInputData.productid)
 
+        print('About to set product name')
+
         if self.managerProductInputData.productname != None: 
             product.name = self.managerProductInputData.productname
+
+        print('About to set group')
 
         if self.managerProductInputData.group != None: 
             product.group = self.managerProductInputData.group
 
+        print('About to set units')
+
         if self.managerProductInputData.units != None:
-            product.units = self.managerProductInputData.units
+            product.units = self._get_units(self.managerProductInputData.units)
+
+        print('About to set price')
+
+        if self.managerProductInputData.price != None:
+            product.price = self._set_price(self.managerProductInputData.price)
+            print('In service price is, ', product.price )
+
+        print('About to add prices')
 
         if self.managerProductInputData.prices != None:
             product.prices = []
@@ -266,9 +305,15 @@ class ManagerManageProductsService(ManagerProductsInputInterface):
         for unit in units:
             self.unitsDataAccess.delete(unit)
 
-        self.managerProductOutputData.units = self.unitsDataAccess.get_units()
-        self.managerProductPresenter.set_units(self.managerProductOutputData)
-
+        try:
+            self.managerProductOutputData.units = self.unitsDataAccess.get_units()
+            self.managerProductPresenter.set_units(self.managerProductOutputData)
+        except TypeError:
+            self.managerProductOutputData.feedback = {
+                    'status': 'Success',
+                    'message': 'No units in database'
+                }
+            self.managerProductPresenter.set_feedback(self.managerProductOutputData)
     
     def update_unit(self):
         print('In Service Unit id is: ' +  str(self.managerProductInputData.unitid))
@@ -304,6 +349,7 @@ class ManagerManageProductsService(ManagerProductsInputInterface):
 
     def add_price(self):
         # get product
+
         id = self.managerProductInputData.productid
         product = self.productsDataAccess.get(id)
         
@@ -314,8 +360,12 @@ class ManagerManageProductsService(ManagerProductsInputInterface):
             active = self.managerProductInputData.active
         )
 
+        print('In service Add price, price is', product.price.fromDate,product.price.amount,product.price.active)
+
         # save product to database
         savedproduct = self.productsDataAccess.save(product)
+
+        print('product saved')
 
         # set output
         self.managerProductOutputData.product = savedproduct
@@ -323,11 +373,13 @@ class ManagerManageProductsService(ManagerProductsInputInterface):
 
     def add_prices(self):
         # get product
+        print('In add prices', self.managerProductInputData.productid)
         prices = self.managerProductInputData.prices
         defaultPrice = self.managerProductInputData.defaultPrice
         id = self.managerProductInputData.productid
         product = self.productsDataAccess.get(id)
         
+        print('about to add prices')
         # add prices
         for price in prices:
             product.add_price(
@@ -336,6 +388,7 @@ class ManagerManageProductsService(ManagerProductsInputInterface):
                 active = price["active"]
             )
         
+        print('about to set default price')
         # set default price
         product.set_default_price(
                 fromDate = self.format_date(defaultPrice["date"]),
@@ -343,9 +396,11 @@ class ManagerManageProductsService(ManagerProductsInputInterface):
                 active = defaultPrice["active"]
             )
 
+        print('about to save product')
         # save product to database
         savedproduct = self.productsDataAccess.save(product)
 
+        print('about to set product price output')
         # set output
         self.managerProductOutputData.product = savedproduct
         self.managerProductPresenter.set_product(self.managerProductOutputData)

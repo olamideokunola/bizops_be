@@ -6,8 +6,11 @@ from domain.controllers.MainController import MainController
 from domain.services.ManagerSalesPresenters import ManagerSaleViewModel, ManagerSalesPresenter
 from domain.services.ManagerProductsPresenters import ManagerProductViewModel, ManagerProductsPresenter
 
-from domain.services.ManagerProductionPresenters import ManagerProductionBatchViewModel, ManagerProductionBatchPresenter
+from domain.controllers.AuthenticationControllers import AuthenticationController
+from domain.services.AuthenticationPresenters import AuthenticationViewModel, AuthenticationPresenter
 
+
+from domain.services.ManagerProductionPresenters import ManagerProductionBatchViewModel, ManagerProductionBatchPresenter
 
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie,csrf_exempt, csrf_protect 
@@ -71,6 +74,7 @@ class Products(ManagerProductBaseView):
         self.name = params['name'] if 'name' in params.keys() else None
         self.group = params['group'] if 'group' in params.keys() else None
         self.units = params['units'] if 'units' in params.keys() else None
+        self.price = params['price'] if 'price' in params.keys() else None
         self.prices = params['prices'] if 'prices' in params.keys() else None
         
         # set current date as date product was created
@@ -81,7 +85,7 @@ class Products(ManagerProductBaseView):
         }
 
         controller = self.controller.manageProductsServiceController
-        self.controller.manageProductsServiceController.create_product(self.name, self.group, self.date, self.units)
+        self.controller.manageProductsServiceController.create_product(self.name, self.group, self.date, self.units, self.price)
         
         print('Back from service ' ) 
 
@@ -124,6 +128,7 @@ class Product(ManagerProductBaseView):
         self.name = params['name'] if 'name' in params.keys() else None
         self.group = params['group'] if 'group' in params.keys() else None
         self.units = params['units'] if 'units' in params.keys() else None
+        self.price = params['price'] if 'price' in params.keys() else None
         self.prices = params['prices'] if 'prices' in params.keys() else None
 
         self.controller.manageProductsServiceController.update_product(
@@ -131,6 +136,7 @@ class Product(ManagerProductBaseView):
             name=self.name,
             group=self.group,
             units=self.units,
+            price=self.price,
             prices=self.prices,
         )
         print (self.viewModel.get_product())
@@ -179,12 +185,15 @@ class ProductPrice(ManagerProductBaseView):
         self.amount = params['price'] if 'price' in params.keys() else None
         self.active = params['active'] if 'active' in params.keys() else None
 
+        print('about to call controller')
         self.controller.manageProductsServiceController.add_price(
             productid=id,
             pricedate=self.pricedate,
             amount=self.amount,
             active=self.active
             )
+
+        print('return from service')
 
         return JsonResponse(self.viewModel.get_product(), safe=False)
 
@@ -289,7 +298,12 @@ class Units(ManagerProductBaseView):
     def delete(self, request):
         self.controller.manageProductsServiceController.delete_all_units()
         
-        return JsonResponse(self.viewModel.get_units(), safe=False)
+        feedback = self.viewModel.get_feedback()
+
+        if feedback['message'] == 'No units in database':
+            return JsonResponse(feedback, safe=False)
+        else:
+            return JsonResponse(self.viewModel.get_units(), safe=False)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -346,7 +360,10 @@ class Sales(ManagerSaleBaseView):
 
         # Get param from request body as python object
         self.get_params_from_request(request)
+
+        # Get user
         user = request.user
+
         print('User is: ' + str(user))
         print('date: ' + str(self.date))
         print('productid: ' + str(self.productid))
@@ -358,16 +375,20 @@ class Sales(ManagerSaleBaseView):
             price=self.price,
             date=self.date,
             customerid=self.customerid,
-            creator=user['username'],
+            creator=user,
             authorizations=user['authorizations'],
             groups=user['groups']
         )
+
         print ('In POST, saved sale is: ' + str(self.viewModel.get_sale()))
         
         feedback = self.viewModel.get_feedback()
 
         if feedback['status'] == 'Success':
-            print('In success, feedback is: '+ str(feedback))
+            # print('In success, feedback is: ', feedback['status'])
+            # print('daysale is', self.viewModel.get_sale())
+            # print('daysales are', self.viewModel.get_day_sales())
+            # return JsonResponse({'status': 'Success'})
             return JsonResponse({'status': feedback['status'], 'daysale': self.viewModel.get_sale(), 'daysales': self.viewModel.get_day_sales()}, safe=False)
         elif feedback['status'] =='Failure':
             print('In failure, feedback is: '+ str(feedback))
@@ -400,6 +421,12 @@ class Sale(ManagerSaleBaseView):
         self.controller.manageSalesServiceController.delete_sale(id)
 
         return JsonResponse(self.viewModel.get_sale(), safe=False)
+
+    def get(self, request, id):
+        print('In get sale id is', id)
+        self.controller.manageSalesServiceController.get_sale(id)
+        return JsonResponse(self.viewModel.get_sale(), safe=False)
+
 
 @method_decorator(csrf_exempt, name='dispatch')
 @method_decorator(ensure_csrf_cookie, name='dispatch')

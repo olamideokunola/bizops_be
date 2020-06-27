@@ -73,28 +73,30 @@ class ManagerProductsPresenter(BasePresenter, ManagerProductOutputInterface):
         # convert to JSON and put in 
         # managerProductViewModel
         # self.managerProductViewModel.products = self.make_json_complaint(managerProductOutputData.products)
-        self.managerProductViewModel.products = [ 
-            {
-               'id': product.id,
-                'name': product.name,
-                'title': product.name,
-                'group': product.group,
-                'units': product.units, 
-                'price': {
-                    'date': '%i-%02i-%02i' % (product.price.fromDate.year, product.price.fromDate.month, product.price.fromDate.day) if product.price != None else None,
-                    'price': product.price.amount if product.price != None else None,
-                    'active': product.price.active if product.price != None else None,
-                },
-                'prices': [
+        
+        if managerProductOutputData.products != None:
+            self.managerProductViewModel.products = [ 
                 {
-                    'date': ('%i-%02i-%02i' % (price.fromDate.year, price.fromDate.month, price.fromDate.day)) if price != None else None,
-                    'price': price.amount,
-                    'active': price.active
-                } for price in product.prices
+                'id': product.id,
+                    'name': product.name,
+                    'title': product.name,
+                    'group': product.group,
+                    'units': product.units, 
+                    'price': {
+                        'date': '%i-%02i-%02i' % (product.price.fromDate.year, product.price.fromDate.month, product.price.fromDate.day) if product.price != None else None,
+                        'price': product.price.amount if product.price != None else None,
+                        'active': product.price.active if product.price != None else None,
+                    },
+                    'prices': [
+                    {
+                        'date': ('%i-%02i-%02i' % (price.fromDate.year, price.fromDate.month, price.fromDate.day)) if price != None else None,
+                        'price': price.amount,
+                        'active': price.active
+                    } for price in product.prices
+                ]
+                } for product in managerProductOutputData.products
             ]
-            } for product in managerProductOutputData.products
-        ]
-        # print("In presenter: number of prices in product 1: " + managerProductOutputData.products[0].name + " " + str(len(managerProductOutputData.products[0].prices)))
+            # print("In presenter: number of prices in product 1: " + managerProductOutputData.products[0].name + " " + str(len(managerProductOutputData.products[0].prices)))
 
     def set_product(self, managerProductOutputData):
         # get product from managerProductOutputData,

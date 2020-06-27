@@ -26,7 +26,7 @@ class ManagerProductionBatchServiceController:
         self.managerProductionBatchService.add_day_production_batch()
 
     def update_day_production_batch(self, id, params):
-        print("In controller, update_day_production_batch")
+        print("In controller, update_day_production_batch", params)
         self.managerProductionBatchInputData.id = id if id != None else None
         self.managerProductionBatchInputData.productType = params["productType"] if params["productType"] != None else None
         self.managerProductionBatchInputData.flourQuantity = params["flourQuantity"] if params["flourQuantity"] != None else None

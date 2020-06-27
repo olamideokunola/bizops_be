@@ -68,6 +68,9 @@ class Login(AuthenticationBaseView):
         # Get controller & authenticate with credentials
         controller = self.controller.authenticationController
         controller.authenticate(self.username, self.password)
+        
+
+        print('back from service')
 
         # if user is authenticated
         if self.viewModel.messages["status"] == "Success":
@@ -151,16 +154,20 @@ class Users(AuthenticationBaseView):
 
         # validate token
         # tokenManager = JwtTokenManager()
+        
         # username = tokenManager.authenticate(request)
 
         # print('logged username: '+ str(username))
         # print('requested username: '+ str(self.username))
         
         #if username != None:
-            # Get controller & authenticate with credentials
+        # Get controller & authenticate with credentials
+        
+        print('In Users.get')
+        print('user is', request.user)
         controller = self.controller.authenticationController
-        controller.getuser(request.user)
-        print('In Users.get, request.user is: ' + request.user)
+        controller.getuser(request.user['username'])
+        print('In Users.get, request.user is: ', request.user)
         controller.getusers()
 
         # Get response from model
@@ -195,7 +202,7 @@ class Users(AuthenticationBaseView):
             # Get response from model
             print('result: ' + str(self.viewModel.user))
 
-            return JsonResponse({'user': self.viewModel.user, 'messages':self.viewModel.messages}, safe=False)
+            return JsonResponse({'user': self.viewModel.user, 'messages':{'status': 'Failure', 'message': self.viewModel.messages['message']}}, safe=False)
         else:
             return JsonResponse({'messages': {'status':'Failure'}}, safe=False)
 
@@ -267,7 +274,7 @@ class User(AuthenticationBaseView):
         if self.username != None: # and self.firstname != None and self.lastname != None:
             print("In post, self.username not none! " + str(self.username))
             inputData = {
-                'id': username,
+                'id': self.id if self.id != None else None,
                 'username' :  self.username if self.username != None else None,
                 'firstname' : self.firstname if self.firstname != None else None,
                 'lastname' : self.lastname if self.lastname != None else None,
@@ -279,13 +286,14 @@ class User(AuthenticationBaseView):
             }
 
             print("In put, self.username not none! " + str(inputData["username"]))
+            print("In put, self.id not none! " + str(inputData["id"]))
 
             # Get controller & update user
             controller = self.controller.authenticationController
             controller.updateuser(inputData)
 
             # Get response from model
-            return JsonResponse({'user': self.viewModel.user, 'messages':self.viewModel.messages}, safe=False)
+            return JsonResponse({'user': self.viewModel.user}, safe=False)
         else:
             return JsonResponse({'messages': self.viewModel.messages}, safe=False)
 

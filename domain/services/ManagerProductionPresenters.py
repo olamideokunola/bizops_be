@@ -46,25 +46,28 @@ class ManagerProductionBatchPresenter(ManagerProductionBatchOutputInterface):
         # get productionbatch from managerProductionBatchOutputData,
         # convert to JSON and put in 
         # managerProductionBatchViewModel
+        print('in set production batch')
         dayproductionbatch = managerProductionBatchOutputData.productionbatch
 
-        if dayproductionbatch != None:
-            print('In Presenter, Product Type is: ' + str(dayproductionbatch.productType))
+        # if dayproductionbatch != None:
+        #     print('In Presenter, Product Type is: ' + str(dayproductionbatch.productType))
 
-        
+        print('about to set managerProductionBatchViewModel', dayproductionbatch)
         self.managerProductionBatchViewModel.productionbatch = {
-            "id": dayproductionbatch.id if dayproductionbatch.id  != None else None,
-            "productType": dayproductionbatch.productType if dayproductionbatch.productType != None else None,
-            "flourQuantity": dayproductionbatch.flourQuantity if dayproductionbatch.flourQuantity != None else None,
-            "startTime": dayproductionbatch.startTime if dayproductionbatch.startTime != None else None,
-            "endTime": dayproductionbatch.endTime if dayproductionbatch.endTime  != None else None,
-            "date": dayproductionbatch.date if dayproductionbatch.date  != None else None,
-            "products": dayproductionbatch.products if dayproductionbatch.products != None else None,
-            "baker": dayproductionbatch.baker if dayproductionbatch.baker != None else None,
-            "supervisor": dayproductionbatch.supervisor if dayproductionbatch.supervisor  != None else None,
-            "assistants": dayproductionbatch.assistants if dayproductionbatch.assistants != None else None,
-            "problems": dayproductionbatch.problems if dayproductionbatch.problems != None else None,
+            "id": dayproductionbatch['id'] if dayproductionbatch['id']  != None else None,
+            "productType": dayproductionbatch['productType'] if dayproductionbatch['productType'] != None else None,
+            "flourQuantity": dayproductionbatch['flourQuantity'] if dayproductionbatch['flourQuantity'] != None else None,
+            "startTime": str(dayproductionbatch['startTime']) if dayproductionbatch['startTime'] != None else None,
+            "endTime": str(dayproductionbatch['endTime']) if dayproductionbatch['endTime']  != None else None,
+            "date": str(dayproductionbatch['date']) if dayproductionbatch['date']  != None else None,
+            "products": dayproductionbatch['products'] if dayproductionbatch['products'] != None else None,
+            "baker": dayproductionbatch['baker'] if dayproductionbatch['baker'] != None else None,
+            "supervisor": dayproductionbatch['supervisor'] if dayproductionbatch['supervisor']  != None else None,
+            "assistants": dayproductionbatch['assistants'] if dayproductionbatch['assistants'] != None else None,
+            "problems": dayproductionbatch['problems'] if dayproductionbatch['problems'] != None else None,
         } if dayproductionbatch != None else None
+
+        print('productionbatch: ', self.managerProductionBatchViewModel.productionbatch )
 
     def set_production_batches(self, managerProductionBatchOutputData):
         # get productionbatch from managerProductionBatchOutputData,
@@ -75,17 +78,17 @@ class ManagerProductionBatchPresenter(ManagerProductionBatchOutputInterface):
     def __get_formatted_production_batches(self, productionBatchesObj):
         return [ 
             {
-                "id": productionBatch.id,
-                "productType": productionBatch.productType,
-                "flourQuantity": productionBatch.flourQuantity,
-                "startTime": productionBatch.startTime,
-                "endTime": productionBatch.endTime,
-                "date": productionBatch.date,
-                "products": productionBatch.products,
-                "baker": productionBatch.baker,
-                "supervisor": productionBatch.supervisor,
-                "assistants": productionBatch.assistants,
-                "problems": productionBatch.problems
+                "id": productionBatch['id'] if productionBatch['id']  != None else None,
+                "productType": productionBatch['productType'] if productionBatch['productType'] != None else None,
+                "flourQuantity": productionBatch['flourQuantity'] if productionBatch['flourQuantity'] != None else None,
+                "startTime": str(productionBatch['startTime']) if productionBatch['startTime'] != None else None,
+                "endTime": str(productionBatch['endTime']) if productionBatch['endTime']  != None else None,
+                "date": str(productionBatch['date']) if productionBatch['date']  != None else None,
+                "products": productionBatch['products'] if productionBatch['products'] != None else None,
+                "baker": productionBatch['baker'] if productionBatch['baker'] != None else None,
+                "supervisor": productionBatch['supervisor'] if productionBatch['supervisor']  != None else None,
+                "assistants": productionBatch['assistants'] if productionBatch['assistants'] != None else None,
+                "problems": productionBatch['problems'] if productionBatch['problems'] != None else None,
             } for productionBatch in productionBatchesObj
         ]
 

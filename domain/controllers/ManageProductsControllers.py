@@ -17,22 +17,24 @@ class ManagerProductServiceController:
     def get_products(self):
         self.managerProductService.get_products()
 
-    def create_product(self, name, group, date, units):
+    def create_product(self, name, group, date, units, price):
         self.managerProductInputData.name = name
         self.managerProductInputData.group = group
         self.managerProductInputData.units = units
+        self.managerProductInputData.price = price
 
         # date is expected as a dictionary
         self.managerProductInputData.date = datetime.date(date['year'], date['month'], date['day'])
 
         self.managerProductService.create_product()
 
-    def update_product(self, productid, name, group, units, prices):
+    def update_product(self, productid, name, group, units, price, prices):
         print('In Controller, product id is: ' + str(productid))
         self.managerProductInputData.productid=productid
         self.managerProductInputData.productname=name
         self.managerProductInputData.group=group
         self.managerProductInputData.units=units
+        self.managerProductInputData.price=price
         self.managerProductInputData.prices=prices
 
         self.managerProductService.update_product()

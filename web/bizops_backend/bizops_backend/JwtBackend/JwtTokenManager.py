@@ -46,6 +46,8 @@ class JwtTokenManager:
             return None
 
     def decode_token(self, request):
+
+        print('In decode token')
         token = self.get_token(request)
         try:
             return jwt.decode(token, 'secret', algorithm='HS256')

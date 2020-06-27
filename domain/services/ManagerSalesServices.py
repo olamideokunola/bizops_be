@@ -4,7 +4,7 @@ from datetime import date
 from calendar import Calendar
 
 from domain.sales.Sales import Sale
-from domain.products.Products import Product
+from domain.products.Products import Product, Price
 from domain.products.Units import Unit
 from domain.products.ProductsDataAccessInterface import ProductsDataAccessInterface
 from domain.products.UnitsDataAccessInterface import UnitsDataAccessInterface
@@ -12,6 +12,8 @@ from domain.customers.CustomersDataAccessInterface import CustomersDataAccessInt
 from domain.sales.SalesDataAccessInterface import SalesDataAccessInterface
 
 from domain.services.ServiceUtils import date_is_yesterday_or_today
+
+from .ManagerProductsServices import ManagerManageProductsService
 
 # an interface for manager sales interactor input boundary interface
 class ManagerSaleInputInterface(ABC):
@@ -77,6 +79,7 @@ class ManagerSaleOutputData():
     daysales = []
     product = Product()
     monthsales = []
+    user = None
 
 # a class for MangerSalesService
 class ManagerManageSalesService(ManagerSaleInputInterface):
@@ -117,22 +120,28 @@ class ManagerManageSalesService(ManagerSaleInputInterface):
         # get product and customer from database using the ids
         product = self.productsDataAccess.get_product(self.managerSaleInputData.productid)
         
+        print('Customer id is ', self.managerSaleInputData.customerid)
+
         if self.managerSaleInputData.customerid != None:
             customer = self.customersDataAccess.get_customer(self.managerSaleInputData.customerid) 
+            print('Customer is', customer)
         else:
             customer = None
         
+        print('Customer is ', customer.id)
 
         # associate products and customers and set attributes quantity and price
         self.sale.product = product
         self.sale.customer = customer
         self.sale.quantity = self.managerSaleInputData.quantity
         self.sale.price = self.managerSaleInputData.price
+
         self.sale.creator = self.managerSaleInputData.creator
 
         self.sale.date = self.managerSaleInputData.date
 
         # save new sale to database
+        print('sale price is ', self.sale.price)
         newsale = self.salesDataAccess.save(self.sale)
 
         # if save is successful set output data (sale and day sales) and format presenter view data
@@ -144,9 +153,14 @@ class ManagerManageSalesService(ManagerSaleInputInterface):
             self.managerSaleOutputData.sale = newsale
             self.managerSaleOutputData.daysales = self.salesDataAccess.get_day_sales(self.sale.date)
 
+            print('day sales received')
+            print('daysales are', self.managerSaleOutputData.daysales)
+
             self.managerSalePresenter.set_sale(self.managerSaleOutputData)
             self.managerSalePresenter.set_day_sales(self.managerSaleOutputData)
             self.managerSalePresenter.set_feedback(self.managerSaleOutputData)
+
+            print('day sales set in presenter')
 
     def add_day_sale(self):
         print('In add_day_dale!')
@@ -191,8 +205,7 @@ class ManagerManageSalesService(ManagerSaleInputInterface):
                 }
                 self.managerSalePresenter.set_sale(self.managerSaleOutputData)
                 self.managerSalePresenter.set_feedback(self.managerSaleOutputData)
-
-            
+    
     def delete_sale(self):
         # Get sale
         if self.managerSaleInputData.saleid != None:
@@ -301,7 +314,6 @@ class ManagerManageSalesService(ManagerSaleInputInterface):
     def get_sales(self):
         self.managerSaleOutputData.sales = self.salesDataAccess.get_sales()
         self.managerSalePresenter.set_sales(self.managerSaleOutputData)
-
 
     def get_customers(self):
         self.managerSaleOutputData.customers = self.customersDataAccess.get_customers()
