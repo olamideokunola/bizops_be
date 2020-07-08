@@ -128,7 +128,7 @@ class ManagerManageSalesService(ManagerSaleInputInterface):
         else:
             customer = None
         
-        print('Customer is ', customer.id)
+        # print('Customer is ', customer.id)
 
         # associate products and customers and set attributes quantity and price
         self.sale.product = product
