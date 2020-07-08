@@ -69,8 +69,8 @@ class Person(Party):
             self.set_address(address)
             self.set_email(email)
             self.add_phonenumber(phonenumber)
-            print('firstname is '+ firstname)
-            print('lastname is '+ lastname)
+            # print('firstname is '+ firstname)
+            # print('lastname is '+ lastname)
         #Party.__init__(self, name, id, address, phonenumber, email)
     
     # def set_email(self, email):

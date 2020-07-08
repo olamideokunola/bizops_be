@@ -364,11 +364,11 @@ class Sales(ManagerSaleBaseView):
         # Get user
         user = request.user
 
-        print('User is: ' + str(user))
-        print('date: ' + str(self.date))
-        print('productid: ' + str(self.productid))
-        print('quantity: ' + str(self.quantity))
-        print('price: ' + str(self.price))
+        # print('User is: ' + str(user))
+        # print('date: ' + str(self.date))
+        # print('productid: ' + str(self.productid))
+        # print('quantity: ' + str(self.quantity))
+        # print('price: ' + str(self.price))
         controller.add_day_sale(
             productid=self.productid,
             quantity=self.quantity,
@@ -380,7 +380,7 @@ class Sales(ManagerSaleBaseView):
             groups=user['groups']
         )
 
-        print ('In POST, saved sale is: ' + str(self.viewModel.get_sale()))
+        # print('In POST, saved sale is: ' + str(self.viewModel.get_sale()))
         
         feedback = self.viewModel.get_feedback()
 
@@ -391,7 +391,7 @@ class Sales(ManagerSaleBaseView):
             # return JsonResponse({'status': 'Success'})
             return JsonResponse({'status': feedback['status'], 'daysale': self.viewModel.get_sale(), 'daysales': self.viewModel.get_day_sales()}, safe=False)
         elif feedback['status'] =='Failure':
-            print('In failure, feedback is: '+ str(feedback))
+            # print('In failure, feedback is: '+ str(feedback))
             return JsonResponse(feedback, safe=False)
 
     def put(self, request):
@@ -405,7 +405,7 @@ class Sales(ManagerSaleBaseView):
             date=self.date,
             customerid=self.customerid
         )
-        print (self.viewModel.get_sale())
+        # print (self.viewModel.get_sale())
         return JsonResponse(self.viewModel.get_sale(), safe=False)
     
     def delete(self, request):
@@ -423,7 +423,7 @@ class Sale(ManagerSaleBaseView):
         return JsonResponse(self.viewModel.get_sale(), safe=False)
 
     def get(self, request, id):
-        print('In get sale id is', id)
+        # print('In get sale id is', id)
         self.controller.manageSalesServiceController.get_sale(id)
         return JsonResponse(self.viewModel.get_sale(), safe=False)
 

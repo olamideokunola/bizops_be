@@ -18,7 +18,7 @@ class Sale(models.Model):
     quantity = models.FloatField(default=0)
     price =  models.DecimalField(max_digits=12, decimal_places=2, null=True)
     currency =  models.CharField(default='NGN', max_length=3, null=True)
-    date =  models.DateField(auto_now=True)
+    date =  models.DateField(null=True)
     customer = models.ForeignKey('Customer', on_delete=models.CASCADE, null=True)
     creator =  models.ForeignKey('User', on_delete=models.CASCADE, null=True)
     lastSaleTime =  models.TimeField(auto_now=True)

@@ -113,18 +113,18 @@ class ManagerManageSalesService(ManagerSaleInputInterface):
         # create empty sale
         self.sale = Sale()
 
-        print('In create sale!')
-        print('In create sale!, productid is: ' + str(self.managerSaleInputData.productid))
+        # print('In create sale!')
+        # print('In create sale!, productid is: ' + str(self.managerSaleInputData.productid))
 
 
         # get product and customer from database using the ids
         product = self.productsDataAccess.get_product(self.managerSaleInputData.productid)
         
-        print('Customer id is ', self.managerSaleInputData.customerid)
+        # print('Customer id is ', self.managerSaleInputData.customerid)
 
         if self.managerSaleInputData.customerid != None:
             customer = self.customersDataAccess.get_customer(self.managerSaleInputData.customerid) 
-            print('Customer is', customer)
+            # print('Customer is', customer)
         else:
             customer = None
         
@@ -141,7 +141,7 @@ class ManagerManageSalesService(ManagerSaleInputInterface):
         self.sale.date = self.managerSaleInputData.date
 
         # save new sale to database
-        print('sale price is ', self.sale.price)
+        # print('sale price is ', self.sale.price)
         newsale = self.salesDataAccess.save(self.sale)
 
         # if save is successful set output data (sale and day sales) and format presenter view data
@@ -153,26 +153,26 @@ class ManagerManageSalesService(ManagerSaleInputInterface):
             self.managerSaleOutputData.sale = newsale
             self.managerSaleOutputData.daysales = self.salesDataAccess.get_day_sales(self.sale.date)
 
-            print('day sales received')
-            print('daysales are', self.managerSaleOutputData.daysales)
+            # print('day sales received')
+            # print('daysales are', self.managerSaleOutputData.daysales)
 
             self.managerSalePresenter.set_sale(self.managerSaleOutputData)
             self.managerSalePresenter.set_day_sales(self.managerSaleOutputData)
             self.managerSalePresenter.set_feedback(self.managerSaleOutputData)
 
-            print('day sales set in presenter')
+            # print('day sales set in presenter')
 
     def add_day_sale(self):
         print('In add_day_dale!')
         # Check the current date and compare to the date entered
         inputDate = self.managerSaleInputData.date
 
-        print('inputDate is: ' + str(inputDate))
+        # print('inputDate is: ' + str(inputDate))
 
         # todayStr = "{}-{}-{}".format(date.today().year, date.today().month, date.today().day)
         inputDate =  '{:%Y-%m-%d}'.format(self.managerSaleInputData.date)
         todayStr = '{:%Y-%m-%d}'.format(date.today())
-        print('todayStr is: ' + todayStr)
+        # print('todayStr is: ' + todayStr)
 
         # if inputDate == todayStr:
         #     print('Date is today')
@@ -189,11 +189,11 @@ class ManagerManageSalesService(ManagerSaleInputInterface):
             print('Date is not today')
 
             groups = self.managerSaleInputData.groups
-            print('number of groups is: ' + str(len(groups)))
+            # print('number of groups is: ' + str(len(groups)))
 
             groupnames = [ group['description'] for group in groups]
 
-            print(str(groupnames))
+            # print(str(groupnames))
 
             if len(groups) > 0 and 'manager_group' in groupnames:
                 self.__create_sale()

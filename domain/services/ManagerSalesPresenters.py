@@ -58,6 +58,7 @@ class ManagerSalesPresenter(ManagerSaleOutputInterface):
 
     @staticmethod
     def _format_sale(daysale):
+        # print('In format sale, sale date is', daysale.date)
         return {
                 "id": daysale.id,
                 "product": {
@@ -110,7 +111,10 @@ class ManagerSalesPresenter(ManagerSaleOutputInterface):
         # convert to JSON and put in 
         # managerSaleViewModel
         # self.managerSaleViewModel.sale = self.make_json_complaint(managerSaleOutputData.sale)
-        print('In set sales')
+        
+        # print('In set sale')
+        # print('sale date is ' + str(managerSaleOutputData.sale.date))
+        # print('date type is ', type(managerSaleOutputData.sale.date))
         daysale = managerSaleOutputData.sale
         self.managerSaleViewModel.sale = self._format_sale(daysale) if daysale != None else None
 

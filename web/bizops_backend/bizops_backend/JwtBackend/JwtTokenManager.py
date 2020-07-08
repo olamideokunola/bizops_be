@@ -34,7 +34,7 @@ class JwtTokenManager:
         if self.get_authorization_header(request) != None:
             auth = self.get_authorization_header(request).split()
 
-            print('In Token Manager, token auth: ' + str(auth))
+            # print('In Token Manager, token auth: ' + str(auth))
 
             if not auth or auth[0].lower() != 'bearer':
                 print('auth: '+ 'No auth')

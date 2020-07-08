@@ -608,7 +608,7 @@ class ProductModelManager(ModelManager, Materializer):
 
     def materialize(self, productModel):
 
-        print('price',productModel.price )
+        # print('price',productModel.price )
         # Set basic fields
         productEntity = ProductEntity(
             name = productModel.name,
@@ -630,7 +630,7 @@ class ProductModelManager(ModelManager, Materializer):
         productEntity.prices=[]
         if productModel.product_prices != None:
             for price in productModel.product_prices.all():
-                print('adding prices')
+                # print('adding prices')
                 productEntity.add_price(
                     amount = price.amount,
                     fromDate = price.fromDate,
@@ -650,29 +650,32 @@ class SaleModelManager(ModelManager, Materializer):
         if saleObject == None:
             sale = Sale.objects.create()
         else:
-            print('Sale id', saleObject.id)
+            # print('Sale id', saleObject.id)
             # Save new
             if saleObject.id == 0 or saleObject.id == None:  
-                print('About to save')
+                # print('About to save')
                 prd = Product.objects.get(pk=saleObject.product.id)
-                print('product is', prd)
-                print('prices is', prd.product_prices.all())
-                print('creator is', saleObject.creator)
-                print('quantity is', saleObject.quantity)
-                print('currency is', saleObject.currency)
-                print('price is', saleObject.price)
-                print('date is', saleObject.date)
-                print('customer is', saleObject.customer)
-                print('lastSaleTime is', saleObject.lastSaleTime)
-                print('1 creator type is', type(saleObject.creator))
-                print('1 creator type is', saleObject.creator)
+                # print('product is', prd)
+                # print('prices is', prd.product_prices.all())
+                # print('creator is', saleObject.creator)
+                # print('quantity is', saleObject.quantity)
+                # print('currency is', saleObject.currency)
+                # print('price is', saleObject.price)
+                # print('date is', saleObject.date)
+                # print('date type is', type(saleObject.date))
+                # print('customer is', saleObject.customer)
+                # print('lastSaleTime is', saleObject.lastSaleTime)
+                # print('1 creator type is', type(saleObject.creator))
+                # print('1 creator type is', saleObject.creator)
 
                 if isinstance(saleObject.creator, UserEntity):
+                    # print('2 creator type is UserEntity')
                     creator = User.objects.get(pk=saleObject.creator.id) if saleObject.creator != None else None
                 elif isinstance(saleObject.creator, dict):
+                    # print('2 creator type is dict')
                     creator = User.objects.get(pk=saleObject.creator['id']) if saleObject.creator != None else None
 
-                print('2 creator type is', type(creator))
+                # print('3 creator type is confirmed as ', type(creator))
 
                 price = None
                 # convert price to plain number
@@ -692,7 +695,7 @@ class SaleModelManager(ModelManager, Materializer):
                     lastSaleTime = saleObject.lastSaleTime,
                 )
 
-                print('After sale')
+                # print('After sale')
 
             else:
                 # update existing
@@ -728,7 +731,8 @@ class SaleModelManager(ModelManager, Materializer):
             creator = userModelManager.materialize(User.objects.get(pk=saleModel.creator.id)) if saleModel.creator != None else None,     
         )
 
-    
+        # print('In materialize for sale, date is ' + str(saleModel.date))
+
         saleEntity.lastSaleTime = saleModel.lastSaleTime
 
         saleEntity.id=saleModel.id
@@ -986,8 +990,8 @@ class DjangoDataBaseManager(DatabaseManagerInterface):
         ids = model.get_ids()
 
         print('about to get day items')
-        print('about to get day items, date is', date)
-        print('about to get day items, ids are', ids)
+        # print('about to get day items, date is', date)
+        # print('about to get day items, ids are', ids)
 
         for id in ids:
             # print('date', model.get(id)['date'])

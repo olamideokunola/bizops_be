@@ -13,7 +13,7 @@ class JwtMiddleware:
         payload = self.jwtManager.decode_token(request)
 
         if payload != None:
-            print('In JwtMiddleware, Payload is: ', payload)
+            # print('In JwtMiddleware, Payload is: ', payload)
             if 'user' in payload:
                 print('user in payload')
                 request.user = payload['user']
